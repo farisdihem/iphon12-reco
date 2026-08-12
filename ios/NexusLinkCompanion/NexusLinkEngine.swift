@@ -651,7 +651,7 @@ public class SwiftOpusEncoder {
                     nil
                 )
             }
-            producedSize = Int(outputBufferList.mBuffers.0.mDataByteSize)
+            producedSize = Int(outputBufferList.mBuffers.mDataByteSize)
             return res
         }
 

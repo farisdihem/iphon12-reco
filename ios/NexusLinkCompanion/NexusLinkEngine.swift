@@ -21,9 +21,9 @@ public struct DiscoveredServer: Identifiable {
 public class NexusLinkIOSEngine: ObservableObject {
     @Published public var isStreaming: Bool = false
     @Published public var isScreenCapturing: Bool = false
-    @Published public var connectionStatus: String = "Disconnected"
+    @Published public var connectionStatus: String = "Waiting for USB network..."
     @Published public var discoveredServers: [DiscoveredServer] = []
-    @Published public var connectionMode: String = "Wi-Fi"
+    @Published public var connectionMode: String = "USB"
     @Published public var diagnosticLogs: [String] = ["App Initialized", "Waiting for action..."]
     
     public func log(_ message: String) {
@@ -58,7 +58,7 @@ public class NexusLinkIOSEngine: ObservableObject {
             guard let self = self else { return }
             Task { @MainActor in
                 self.connectionMode = "USB"
-                self.connectionStatus = "Connected via USB"
+                self.connectionStatus = "Connected"
                 print("[USB] ACTIVE STATE RECEIVED")
                 // Automatically send HELLO on connect
                 self.sendUSBDeviceInfoHandshake()
@@ -72,7 +72,7 @@ public class NexusLinkIOSEngine: ObservableObject {
     
     public func clearStaleUSBTransportAndSwitchToWiFi() {
         log("[CLEANUP] Clearing active USB connection and switching connectionMode to Wi-Fi")
-        self.connectionMode = "Wi-Fi"
+        self.connectionMode = "USB"
         usbListener?.closeActiveConnection()
     }
     
@@ -101,7 +101,7 @@ public class NexusLinkIOSEngine: ObservableObject {
     /// Step 2: Establish QUIC / TLS 1.3 Transport to Windows PC
     public func startQUICConnection(host: String, port: UInt16, pin: String? = nil) {
         self.pendingPinCode = pin
-        self.connectionMode = "Wi-Fi" // Explicitly clear any stale USB transport mode when initiating QUIC
+        self.connectionMode = "USB" // Explicitly clear any stale USB transport mode when initiating QUIC
         
         log("[UI] CONNECT BUTTON PRESSED")
         log("[UI] IP = \(host)")
@@ -164,7 +164,7 @@ public class NexusLinkIOSEngine: ObservableObject {
                     self.log("[QUIC] STATE ready")
                     self.log("[TLS] SUCCESS")
                     self.log("[ALPN] nexuslink-v2")
-                    self.connectionStatus = "Connected via Wi-Fi QUIC"
+                    self.connectionStatus = "Connected"
                     self.listenForMessages()
                     self.sendDeviceInfoHandshake()
                     self.sendPing()

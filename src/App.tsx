@@ -164,7 +164,7 @@ export default function App() {
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
         <MainStreamView
           activeDevice={activeDevice}
-          allDevices={allDevices}
+          
           onSelectDevice={setActiveDevice}
           audioSettings={audioSettings}
           videoSettings={videoSettings}
@@ -187,12 +187,12 @@ export default function App() {
         lang={lang}
       />
 
-      {/* Pairing QR Modal */}
+      {.* Pairing USB Modal .*}
       <PairingModal
         isOpen={isPairingOpen}
         onClose={() => setIsPairingOpen(false)}
-        allDevices={allDevices}
-        onAddNewDevice={handleAddNewDevice}
+        
+        
       />
 
       {/* ADB Console Modal */}

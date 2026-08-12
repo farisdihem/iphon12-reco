@@ -6,7 +6,7 @@ import {
   Battery, 
   BatteryCharging, 
   Radio, 
-  QrCode, 
+  Usb, 
   Terminal, 
   Volume2, 
   Settings,

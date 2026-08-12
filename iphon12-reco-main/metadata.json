@@ -1,0 +1,11 @@
+{
+  "name": "PhoneLink Ultra",
+  "description": "High-performance, low-latency Wi-Fi & USB Android/iOS to PC/Mac link system with live screen mirroring, bi-directional Opus/WASAPI audio streaming, chunked file transfer, and device control.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

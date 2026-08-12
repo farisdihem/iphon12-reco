@@ -1,0 +1,43 @@
+﻿2026-08-12T14:48:27.7399556Z ##[group]Run cargo test --manifest-path src-tauri/Cargo.toml
+2026-08-12T14:48:27.7400053Z [36;1mcargo test --manifest-path src-tauri/Cargo.toml[0m
+2026-08-12T14:48:27.7456394Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-08-12T14:48:27.7456722Z env:
+2026-08-12T14:48:27.7456912Z   CMAKE_POLICY_VERSION_MINIMUM: 3.5
+2026-08-12T14:48:27.7457173Z   CMAKE_FLAGS: -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+2026-08-12T14:48:27.7457461Z   CARGO_HOME: C:\Users\runneradmin\.cargo
+2026-08-12T14:48:27.7457711Z   CARGO_INCREMENTAL: 0
+2026-08-12T14:48:27.7457939Z   CARGO_TERM_COLOR: always
+2026-08-12T14:48:27.7458154Z   CACHE_ON_FAILURE: false
+2026-08-12T14:48:27.7458359Z ##[endgroup]
+2026-08-12T14:48:29.9124894Z [1m[92m    Updating[0m crates.io index
+2026-08-12T14:48:53.8225317Z [1m[92m   Compiling[0m nexuslink-desktop v2.4.0 (D:\a\iphon12-reco\iphon12-reco\src-tauri)
+2026-08-12T14:49:30.1826199Z [1m[91merror[0m: failed to run custom build command for `nexuslink-desktop v2.4.0 (D:\a\iphon12-reco\iphon12-reco\src-tauri)`
+2026-08-12T14:49:30.1827368Z 
+2026-08-12T14:49:30.1827661Z Caused by:
+2026-08-12T14:49:30.1829179Z   process didn't exit successfully: `D:\a\iphon12-reco\iphon12-reco\src-tauri\target\debug\build\nexuslink-desktop-85f68343459ac297\build-script-build` (exit code: 101)
+2026-08-12T14:49:30.1830304Z   --- stdout
+2026-08-12T14:49:30.1830731Z   cargo:rerun-if-env-changed=TAURI_CONFIG
+2026-08-12T14:49:30.1831240Z   cargo:rustc-check-cfg=cfg(desktop)
+2026-08-12T14:49:30.1831713Z   cargo:rustc-cfg=desktop
+2026-08-12T14:49:30.1832106Z   cargo:rustc-check-cfg=cfg(mobile)
+2026-08-12T14:49:30.1832722Z   cargo:rerun-if-changed=D:\a\iphon12-reco\iphon12-reco\src-tauri\tauri.conf.json
+2026-08-12T14:49:30.1833434Z   cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_APP_NAME=desktop
+2026-08-12T14:49:30.1834018Z   cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_PREFIX=com_nexuslink
+2026-08-12T14:49:30.1834530Z   cargo:rustc-check-cfg=cfg(dev)
+2026-08-12T14:49:30.1835039Z   cargo:rustc-cfg=dev
+2026-08-12T14:49:30.1836331Z   cargo:PERMISSION_FILES_PATH=D:\a\iphon12-reco\iphon12-reco\src-tauri\target\debug\build\nexuslink-desktop-d77091accc1becc9\out\app-manifest\__app__-permission-files
+2026-08-12T14:49:30.1839260Z   cargo:rerun-if-changed=capabilities
+2026-08-12T14:49:30.1839846Z   cargo:rerun-if-env-changed=REMOVE_UNUSED_COMMANDS
+2026-08-12T14:49:30.1840449Z   cargo:rustc-env=TAURI_ENV_TARGET_TRIPLE=x86_64-pc-windows-msvc
+2026-08-12T14:49:30.1840996Z   package.metadata does not exist
+2026-08-12T14:49:30.1841600Z   Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+2026-08-12T14:49:30.1842265Z   Copyright (C) Microsoft Corporation.  All rights reserved.
+2026-08-12T14:49:30.1842605Z 
+2026-08-12T14:49:30.1843730Z   D:\a\iphon12-reco\iphon12-reco\src-tauri\target\debug\build\nexuslink-desktop-d77091accc1becc9\out\resource.rc(26) : error RC2176 : old DIB in D:\a\iphon12-reco\iphon12-reco\src-tauri\icons\icon.ico; pass it through SDKPAINT
+2026-08-12T14:49:30.1845847Z 
+2026-08-12T14:49:30.1846014Z   --- stderr
+2026-08-12T14:49:30.1846248Z 
+2026-08-12T14:49:30.1846958Z   thread 'main' (4396) panicked at C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-winres-0.3.6\src\lib.rs:543:14:
+2026-08-12T14:49:30.1848151Z   called `Result::unwrap()` on an `Err` value: Failed("RC.EXE failed to compile specified resource file")
+2026-08-12T14:49:30.1848963Z   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+2026-08-12T14:49:30.4819622Z ##[error]Process completed with exit code 1.

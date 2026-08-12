@@ -54,13 +54,20 @@ async fn get_pairing_payload(state: State<'_, AppState>) -> Result<PairingPayloa
     let port = 8492;
     
     let mut usb_networks = Vec::new();
+    
     if let Ok(interfaces) = local_ip_address::list_afinet_netifas() {
         for (name, ip) in interfaces {
             if ip.is_ipv4() && !ip.is_loopback() {
+                println!("[USB] NETWORK INTERFACE DETECTED: {}", name);
+                println!("[USB] IP = {}", ip);
                 usb_networks.push(UsbNetworkInfo {
                     interface_name: name,
                     ip_address: ip.to_string(),
                 });
+            }
+        }
+    }
+);
             }
         }
     }

@@ -217,19 +217,19 @@ public class NexusLinkIOSEngine: ObservableObject {
     
     private func handleIncomingData(_ data: Data) {
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            print("[PAIRING] Server response: \(json)")
+            self.log("[PAIRING] RESPONSE RECEIVED")
             if let type = json["type"] as? String, let payload = json["payload"] as? [String: Any] {
                 if type == "PairResponse" {
-                    print("[PAIRING] RESPONSE RECEIVED")
+                    
                     let success = payload["success"] as? Bool ?? false
                     let reason = payload["reason"] as? String
                     Task { @MainActor in
                         if success {
-                            print("[PAIRING] PAIRED")
-                            print("[PAIRING] SUCCESS")
+                            
+                            self.log("[PAIRING] SUCCESS")
                             self.connectionStatus = "Connected & Paired Successfully"
                         } else {
-                            print("[PAIRING] FAILED: \(reason ?? "Unknown error")")
+                            self.log("[PAIRING] FAILED: \(reason ?? "Unknown error")")
                             self.connectionStatus = "Pairing Failed: \(reason ?? "Unknown")"
                         }
                     }
@@ -242,7 +242,7 @@ public class NexusLinkIOSEngine: ObservableObject {
     
     /// Step 3: Protocol Handshake (DEVICE_INFO & PING/PONG)
     public func sendDeviceInfoHandshake() {
-        print("[PAIRING] HELLO SENT")
+        self.log("[PAIRING] HELLO SENT")
         let payload: [String: Any] = [
             "type": "DeviceInfo",
             "payload": [
@@ -268,7 +268,7 @@ public class NexusLinkIOSEngine: ObservableObject {
     }
     
     public func initiatePairing(pinCode: String) {
-        print("[PAIRING] PIN SENT")
+        self.log("[PAIRING] PIN SENT")
         let payload: [String: Any] = [
             "type": "PairRequest",
             "payload": [
@@ -286,7 +286,7 @@ public class NexusLinkIOSEngine: ObservableObject {
     }
 
     private func sendUSBDeviceInfoHandshake() {
-        print("[PAIRING] HELLO SENT")
+        self.log("[PAIRING] HELLO SENT")
         let payload: [String: Any] = [
             "type": "DeviceInfo",
             "payload": [
@@ -310,19 +310,19 @@ public class NexusLinkIOSEngine: ObservableObject {
             print("[PAIRING] DEVICE INFO RECEIVED")
             sendUSBDeviceInfoHandshake()
         case 3: // PAIR_RESPONSE
-            print("[PAIRING] RESPONSE RECEIVED")
+            
             if let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
                let payloadData = json["payload"] as? [String: Any] {
                 let success = payloadData["success"] as? Bool ?? false
                 let reason = payloadData["reason"] as? String
                 Task { @MainActor in
                     if success {
-                        print("[PAIRING] PAIRED")
-                        print("[PAIRING] SUCCESS")
+                        
+                        self.log("[PAIRING] SUCCESS")
                         print("[USB] DEVICE PAIRED")
                         self.connectionStatus = "Connected & Paired Successfully"
                     } else {
-                        print("[PAIRING] FAILED: \(reason ?? "Unknown")")
+                        self.log("[PAIRING] FAILED: \(reason ?? "Unknown")")
                         self.connectionStatus = "Pairing Failed: \(reason ?? "Unknown")"
                     }
                 }

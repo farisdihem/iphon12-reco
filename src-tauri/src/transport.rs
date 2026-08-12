@@ -103,12 +103,12 @@ impl TransportEngine {
                 }
                 NexusMessage::DeviceInfo { device_name, os, capabilities, .. } => {
                     println!("[PAIRING] HELLO RECEIVED");
-                    println!("[APP] HELLO received");
+                    
                     println!("[NEXUSLINK QUIC] Device Info Handshake: {} ({}) with caps {:?}", device_name, os, capabilities);
                 }
                 NexusMessage::PairRequest { pin_code, device_id } => {
                     println!("[PAIRING] PIN RECEIVED");
-                    println!("[APP] PIN received");
+                    
                     let success = if let Some(ref exp) = expected_pin {
                         pin_code == exp
                     } else {
@@ -141,7 +141,7 @@ impl TransportEngine {
         current_pin: Arc<Mutex<Option<String>>>,
         app_handle: tauri::AppHandle,
     ) -> Result<(), String> {
-        println!("[NET] SERVER LISTENING 0.0.0.0:{}", self.port);
+        println!("[QUIC] LISTENING 0.0.0.0:{}", self.port);
         let (cert, key) = Self::generate_self_signed_cert()?;
         
         let mut server_crypto = rustls::ServerConfig::builder()
@@ -162,8 +162,8 @@ impl TransportEngine {
         let addr = format!("0.0.0.0:{}", self.port).parse::<SocketAddr>().map_err(|e| e.to_string())?;
         
         let endpoint = quinn::Endpoint::server(server_config, addr).map_err(|e| e.to_string())?;
-        println!("[NEXUSLINK] QUIC / UDP Server active on {}", addr);
-        println!("[NEXUSLINK] TLS 1.3 ALPN [nexuslink-v2] Listening...");
+        
+        
         
         self.is_running = true;
         
@@ -173,10 +173,10 @@ impl TransportEngine {
             authenticated_peers: Vec::new(),
         }));
         
-        println!("[QUIC] LISTENER TASK STARTED");
+        
         
         while self.is_running {
-            println!("[QUIC] WAITING FOR endpoint.accept()");
+            
             if let Some(conn) = endpoint.accept().await {
                 let stats_tx = stats_tx.clone();
                 let current_pin = current_pin.clone();
@@ -184,22 +184,22 @@ impl TransportEngine {
                 let app_handle = app_handle.clone();
                 
                 let peer_addr = conn.remote_address();
-                println!("[QUIC] ENDPOINT ACCEPT RETURNED");
-                println!("[NET] UDP/QUIC activity detected from {}", peer_addr);
-                println!("[QUIC] incoming connection attempt from {}", peer_addr);
-                println!("[NET] CONNECTION RECEIVED {}", peer_addr);
+                
+                
+                
+                println!("[QUIC] CONNECTION RECEIVED");
                 
                 tokio::spawn(async move {
-                    println!("[QUIC] CONNECTION AWAIT STARTED");
-                    println!("[TLS] handshake started for {}", peer_addr);
+                    
+                    
                     
                     match conn.await {
                         Ok(connection) => {
-                            println!("[TLS] handshake success");
-                            println!("[QUIC] CONNECTION ESTABLISHED with {}", peer_addr);
-                            println!("[QUIC] CONNECTED");
-                            println!("[TLS] CONNECTED");
-                            println!("[ALPN] nexuslink-v2");
+                            println!("[TLS] HANDSHAKE SUCCESS");
+                            
+                            
+                            
+                            
                             loop {
                                 match connection.read_datagram().await {
                                     Ok(datagram) => {
@@ -486,7 +486,7 @@ pub async fn start_usb_listener(
                                         }
                                         2 => { // PAIR_REQUEST
                                             println!("[PAIRING] PIN RECEIVED");
-                                            println!("[APP] PIN received");
+                                            
                                             if let Ok(req) = serde_json::from_slice::<serde_json::Value>(&payload) {
                                                 let payload_data = &req["payload"];
                                                 let pin_code = payload_data["pin_code"].as_str().unwrap_or("");

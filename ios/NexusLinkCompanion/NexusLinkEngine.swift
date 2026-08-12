@@ -111,8 +111,12 @@ public class NexusLinkIOSEngine: ObservableObject {
         // Configure custom self-signed TLS verification
         let securityOptions = quicOptions.securityProtocolOptions
         sec_protocol_options_set_verify_block(securityOptions, { [weak self] (sec_protocol_metadata, sec_trust, completionHandler) in
-            self?.log("[TLS] VERIFY CALLBACK CALLED")
-            self?.log("[QUIC] TLS verification bypass: Trusting self-signed local certificate")
+            print("[TLS] VERIFY CALLBACK CALLED")
+            print("[QUIC] TLS verification bypass: Trusting self-signed local certificate")
+            Task { @MainActor in
+                self?.log("[TLS] VERIFY CALLBACK CALLED")
+                self?.log("[QUIC] TLS verification bypass: Trusting self-signed local certificate")
+            }
             completionHandler(true)
         }, .main)
         log("[QUIC] TLS verification bypass handler attached successfully")
@@ -126,30 +130,25 @@ public class NexusLinkIOSEngine: ObservableObject {
         
         nwConnection?.stateUpdateHandler = { [weak self] state in
             guard let self = self else { return }
-            self.log("[QUIC] STATE = \(state)")
             
-            switch state {
-            case .setup:
-                self.log("[QUIC] STATE setup")
-                Task { @MainActor in
+            Task { @MainActor in
+                self.log("[QUIC] STATE = \(state)")
+                
+                switch state {
+                case .setup:
+                    self.log("[QUIC] STATE setup")
                     self.connectionStatus = "Connecting: Setup"
-                }
-            case .preparing:
-                self.log("[QUIC] STATE preparing")
-                Task { @MainActor in
+                case .preparing:
+                    self.log("[QUIC] STATE preparing")
                     self.connectionStatus = "Connecting: Preparing QUIC..."
-                }
-            case .waiting(let error):
-                self.log("[QUIC] STATE waiting")
-                self.log("[QUIC] ERROR = \(error.localizedDescription)")
-                Task { @MainActor in
+                case .waiting(let error):
+                    self.log("[QUIC] STATE waiting")
+                    self.log("[QUIC] ERROR = \(error.localizedDescription)")
                     self.connectionStatus = "Connecting: Waiting (\(error.localizedDescription))"
-                }
-            case .ready:
-                self.log("[QUIC] STATE ready")
-                self.log("[TLS] SUCCESS")
-                self.log("[ALPN] nexuslink-v2")
-                Task { @MainActor in
+                case .ready:
+                    self.log("[QUIC] STATE ready")
+                    self.log("[TLS] SUCCESS")
+                    self.log("[ALPN] nexuslink-v2")
                     self.connectionStatus = "Connected via Wi-Fi QUIC"
                     self.listenForMessages()
                     self.sendDeviceInfoHandshake()
@@ -158,21 +157,17 @@ public class NexusLinkIOSEngine: ObservableObject {
                     if let pinCode = self.pendingPinCode {
                         self.initiatePairing(pinCode: pinCode)
                     }
-                }
-            case .failed(let error):
-                self.log("[QUIC] STATE = failed")
-                self.log("[QUIC] ERROR = \(error.localizedDescription)")
-                self.log("[TLS] FAILURE \(error.localizedDescription)")
-                Task { @MainActor in
+                case .failed(let error):
+                    self.log("[QUIC] STATE = failed")
+                    self.log("[QUIC] ERROR = \(error.localizedDescription)")
+                    self.log("[TLS] FAILURE \(error.localizedDescription)")
                     self.connectionStatus = "Connection Failed: \(error.localizedDescription)"
-                }
-            case .cancelled:
-                self.log("[QUIC] STATE cancelled")
-                Task { @MainActor in
+                case .cancelled:
+                    self.log("[QUIC] STATE cancelled")
                     self.connectionStatus = "Disconnected"
+                @unknown default:
+                    break
                 }
-            @unknown default:
-                break
             }
         }
         
@@ -187,11 +182,14 @@ public class NexusLinkIOSEngine: ObservableObject {
                 print("[iOS QUIC] Receive error: \(error)")
                 return
             }
-            if let data = content, !data.isEmpty {
-                self?.handleIncomingData(data)
-            }
-            if connection.state == .ready {
-                self?.listenForMessages()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                if let data = content, !data.isEmpty {
+                    self.handleIncomingData(data)
+                }
+                if connection.state == .ready {
+                    self.listenForMessages()
+                }
             }
         }
     }

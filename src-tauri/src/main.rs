@@ -85,6 +85,17 @@ async fn initiate_device_pairing(pin: String) -> Result<DevicePairingInfo, Strin
     })
 }
 
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct LiveTelemetry {
+    pub audio_latency_ms: f32,
+    pub video_latency_ms: f32,
+    pub fps: u32,
+    pub jitter_ms: f32,
+    pub packet_loss_percent: f32,
+    pub throughput_mbps: f32,
+}
+
 #[tauri::command]
 async fn start_telemetry_stream(channel: Channel<LiveTelemetry>) -> Result<(), String> {
     tokio::spawn(async move {

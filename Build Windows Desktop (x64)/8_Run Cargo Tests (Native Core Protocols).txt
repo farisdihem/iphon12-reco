@@ -1,0 +1,177 @@
+﻿2026-08-12T14:52:51.4138925Z ##[group]Run cargo test --manifest-path src-tauri/Cargo.toml
+2026-08-12T14:52:51.4139589Z [36;1mcargo test --manifest-path src-tauri/Cargo.toml[0m
+2026-08-12T14:52:51.4213980Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-08-12T14:52:51.4214404Z env:
+2026-08-12T14:52:51.4214666Z   CMAKE_POLICY_VERSION_MINIMUM: 3.5
+2026-08-12T14:52:51.4215025Z   CMAKE_FLAGS: -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+2026-08-12T14:52:51.4215391Z   CARGO_HOME: C:\Users\runneradmin\.cargo
+2026-08-12T14:52:51.4215713Z   CARGO_INCREMENTAL: 0
+2026-08-12T14:52:51.4216007Z   CARGO_TERM_COLOR: always
+2026-08-12T14:52:51.4216287Z   CACHE_ON_FAILURE: false
+2026-08-12T14:52:51.4216552Z ##[endgroup]
+2026-08-12T14:52:52.8919947Z [1m[92m    Updating[0m crates.io index
+2026-08-12T14:53:15.0503617Z [1m[92m   Compiling[0m nexuslink-desktop v2.4.0 (D:\a\iphon12-reco\iphon12-reco\src-tauri)
+2026-08-12T14:53:25.9889951Z [1m[91merror[0m[1m[97m: cannot find macro `__tauri_command_name_get_system_status` in this scope[0m
+2026-08-12T14:53:25.9891202Z    [1m[96m--> [0msrc\main.rs:144:25
+2026-08-12T14:53:25.9891707Z     [1m[96m|[0m
+2026-08-12T14:53:25.9893773Z [1m[96m144[0m [1m[96m|[0m           .invoke_handler(tauri::generate_handler![
+2026-08-12T14:53:25.9894745Z     [1m[96m|[0m [1m[91m _________________________^[0m
+2026-08-12T14:53:25.9895594Z [1m[96m145[0m [1m[96m|[0m [1m[91m|[0m             get_system_status,
+2026-08-12T14:53:25.9896321Z [1m[96m146[0m [1m[96m|[0m [1m[91m|[0m             get_pairing_payload,
+2026-08-12T14:53:25.9897041Z [1m[96m147[0m [1m[96m|[0m [1m[91m|[0m             initiate_device_pairing,
+2026-08-12T14:53:25.9897602Z [1m[96m...[0m   [1m[91m|[0m
+2026-08-12T14:53:25.9898185Z [1m[96m150[0m [1m[96m|[0m [1m[91m|[0m             get_video_decoder_status,
+2026-08-12T14:53:25.9898804Z [1m[96m151[0m [1m[96m|[0m [1m[91m|[0m         ])
+2026-08-12T14:53:25.9899279Z     [1m[96m|[0m [1m[91m|_________^[0m
+2026-08-12T14:53:25.9899690Z     [1m[96m|[0m
+2026-08-12T14:53:25.9900804Z     [1m[96m= [0m[1m[97mnote[0m: this error originates in the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+2026-08-12T14:53:25.9901526Z 
+2026-08-12T14:53:25.9910100Z [1m[91merror[0m[1m[97m: cannot find macro `__cmd__get_system_status` in this scope[0m
+2026-08-12T14:53:25.9910919Z    [1m[96m--> [0msrc\main.rs:145:13
+2026-08-12T14:53:25.9911296Z     [1m[96m|[0m
+2026-08-12T14:53:25.9911727Z [1m[96m145[0m [1m[96m|[0m             get_system_status,
+2026-08-12T14:53:25.9912204Z     [1m[96m|[0m             [1m[91m^^^^^^^^^^^^^^^^^[0m
+2026-08-12T14:53:25.9912467Z 
+2026-08-12T14:53:25.9963146Z [1m[91merror[0m[1m[97m: cannot find macro `__tauri_command_name_run_audio_loop_test` in this scope[0m
+2026-08-12T14:53:25.9964440Z    [1m[96m--> [0msrc\main.rs:144:25
+2026-08-12T14:53:25.9964881Z     [1m[96m|[0m
+2026-08-12T14:53:25.9965590Z [1m[96m144[0m [1m[96m|[0m           .invoke_handler(tauri::generate_handler![
+2026-08-12T14:53:25.9967100Z     [1m[96m|[0m [1m[91m _________________________^[0m
+2026-08-12T14:53:25.9967832Z [1m[96m145[0m [1m[96m|[0m [1m[91m|[0m             get_system_status,
+2026-08-12T14:53:25.9968593Z [1m[96m146[0m [1m[96m|[0m [1m[91m|[0m             get_pairing_payload,
+2026-08-12T14:53:25.9969362Z [1m[96m147[0m [1m[96m|[0m [1m[91m|[0m             initiate_device_pairing,
+2026-08-12T14:53:25.9969962Z [1m[96m...[0m   [1m[91m|[0m
+2026-08-12T14:53:25.9970632Z [1m[96m150[0m [1m[96m|[0m [1m[91m|[0m             get_video_decoder_status,
+2026-08-12T14:53:25.9971291Z [1m[96m151[0m [1m[96m|[0m [1m[91m|[0m         ])
+2026-08-12T14:53:25.9971751Z     [1m[96m|[0m [1m[91m|_________^[0m
+2026-08-12T14:53:25.9972045Z     [1m[96m|[0m
+2026-08-12T14:53:25.9972951Z     [1m[96m= [0m[1m[97mnote[0m: this error originates in the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+2026-08-12T14:53:25.9975977Z 
+2026-08-12T14:53:26.0012540Z [1m[91merror[0m[1m[97m: cannot find macro `__cmd__run_audio_loop_test` in this scope[0m
+2026-08-12T14:53:26.0013361Z    [1m[96m--> [0msrc\main.rs:149:13
+2026-08-12T14:53:26.0013751Z     [1m[96m|[0m
+2026-08-12T14:53:26.0014182Z [1m[96m149[0m [1m[96m|[0m             run_audio_loop_test,
+2026-08-12T14:53:26.0014683Z     [1m[96m|[0m             [1m[91m^^^^^^^^^^^^^^^^^^^[0m
+2026-08-12T14:53:26.0014931Z 
+2026-08-12T14:53:26.0063687Z [1m[91merror[0m[1m[97m: cannot find macro `__tauri_command_name_get_video_decoder_status` in this scope[0m
+2026-08-12T14:53:26.0064550Z    [1m[96m--> [0msrc\main.rs:144:25
+2026-08-12T14:53:26.0064914Z     [1m[96m|[0m
+2026-08-12T14:53:26.0065569Z [1m[96m144[0m [1m[96m|[0m           .invoke_handler(tauri::generate_handler![
+2026-08-12T14:53:26.0066163Z     [1m[96m|[0m [1m[91m _________________________^[0m
+2026-08-12T14:53:26.0066774Z [1m[96m145[0m [1m[96m|[0m [1m[91m|[0m             get_system_status,
+2026-08-12T14:53:26.0067458Z [1m[96m146[0m [1m[96m|[0m [1m[91m|[0m             get_pairing_payload,
+2026-08-12T14:53:26.0068166Z [1m[96m147[0m [1m[96m|[0m [1m[91m|[0m             initiate_device_pairing,
+2026-08-12T14:53:26.0068690Z [1m[96m...[0m   [1m[91m|[0m
+2026-08-12T14:53:26.0069239Z [1m[96m150[0m [1m[96m|[0m [1m[91m|[0m             get_video_decoder_status,
+2026-08-12T14:53:26.0069821Z [1m[96m151[0m [1m[96m|[0m [1m[91m|[0m         ])
+2026-08-12T14:53:26.0070259Z     [1m[96m|[0m [1m[91m|_________^[0m
+2026-08-12T14:53:26.0070594Z     [1m[96m|[0m
+2026-08-12T14:53:26.0071618Z     [1m[96m= [0m[1m[97mnote[0m: this error originates in the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+2026-08-12T14:53:26.0072329Z 
+2026-08-12T14:53:26.0113506Z [1m[91merror[0m[1m[97m: cannot find macro `__cmd__get_video_decoder_status` in this scope[0m
+2026-08-12T14:53:26.0114389Z    [1m[96m--> [0msrc\main.rs:150:13
+2026-08-12T14:53:26.0114823Z     [1m[96m|[0m
+2026-08-12T14:53:26.0115373Z [1m[96m150[0m [1m[96m|[0m             get_video_decoder_status,
+2026-08-12T14:53:26.0116048Z     [1m[96m|[0m             [1m[91m^^^^^^^^^^^^^^^^^^^^^^^^[0m
+2026-08-12T14:53:26.0116368Z 
+2026-08-12T14:53:26.1793346Z [1m[91merror[E0425][0m[1m[97m: cannot find type `DevicePairingInfo` in this scope[0m
+2026-08-12T14:53:26.1794368Z   [1m[96m--> [0msrc\main.rs:77:57
+2026-08-12T14:53:26.1794864Z    [1m[96m|[0m
+2026-08-12T14:53:26.1795813Z [1m[96m77[0m [1m[96m|[0m async fn initiate_device_pairing(pin: String) -> Result<DevicePairingInfo, String> {
+2026-08-12T14:53:26.1796943Z    [1m[96m|[0m                                                         [1m[91m^^^^^^^^^^^^^^^^^[0m [1m[91mnot found in this scope[0m
+2026-08-12T14:53:26.1797576Z    [1m[96m|[0m
+2026-08-12T14:53:26.1798124Z [1m[96mhelp[0m: you might be missing a type parameter
+2026-08-12T14:53:26.1798918Z    [1m[96m|[0m
+2026-08-12T14:53:26.1800058Z [1m[96m77[0m [1m[96m| [0masync fn initiate_device_pairing[92m<DevicePairingInfo>[0m(pin: String) -> Result<DevicePairingInfo, String> {
+2026-08-12T14:53:26.1801118Z    [1m[96m|[0m                                 [92m+++++++++++++++++++[0m
+2026-08-12T14:53:26.1801434Z 
+2026-08-12T14:53:26.1831992Z [1m[91merror[E0422][0m[1m[97m: cannot find struct, variant or union type `DevicePairingInfo` in this scope[0m
+2026-08-12T14:53:26.1833113Z   [1m[96m--> [0msrc\main.rs:79:8
+2026-08-12T14:53:26.1833509Z    [1m[96m|[0m
+2026-08-12T14:53:26.1833986Z [1m[96m79[0m [1m[96m|[0m     Ok(DevicePairingInfo {
+2026-08-12T14:53:26.1834551Z    [1m[96m|[0m        [1m[91m^^^^^^^^^^^^^^^^^[0m [1m[91mnot found in this scope[0m
+2026-08-12T14:53:26.1834928Z 
+2026-08-12T14:53:26.1835309Z [1m[91merror[E0425][0m[1m[97m: cannot find type `LiveTelemetry` in this scope[0m
+2026-08-12T14:53:26.1836921Z   [1m[96m--> [0msrc\main.rs:89:50
+2026-08-12T14:53:26.1837313Z    [1m[96m|[0m
+2026-08-12T14:53:26.1838810Z [1m[96m89[0m [1m[96m|[0m async fn start_telemetry_stream(channel: Channel<LiveTelemetry>) -> Result<(), String> {
+2026-08-12T14:53:26.1840279Z    [1m[96m|[0m                                                  [1m[91m^^^^^^^^^^^^^[0m [1m[91mnot found in this scope[0m
+2026-08-12T14:53:26.1840890Z    [1m[96m|[0m
+2026-08-12T14:53:26.1841333Z [1m[96mhelp[0m: you might be missing a type parameter
+2026-08-12T14:53:26.1841753Z    [1m[96m|[0m
+2026-08-12T14:53:26.1842538Z [1m[96m89[0m [1m[96m| [0masync fn start_telemetry_stream[92m<LiveTelemetry>[0m(channel: Channel<LiveTelemetry>) -> Result<(), String> {
+2026-08-12T14:53:26.1843347Z    [1m[96m|[0m                                [92m+++++++++++++++[0m
+2026-08-12T14:53:26.1843612Z 
+2026-08-12T14:53:26.1844119Z [1m[91merror[E0422][0m[1m[97m: cannot find struct, variant or union type `LiveTelemetry` in this scope[0m
+2026-08-12T14:53:26.1844749Z   [1m[96m--> [0msrc\main.rs:94:29
+2026-08-12T14:53:26.1845096Z    [1m[96m|[0m
+2026-08-12T14:53:26.1845573Z [1m[96m94[0m [1m[96m|[0m             let telemetry = LiveTelemetry {
+2026-08-12T14:53:26.1846664Z    [1m[96m|[0m                             [1m[91m^^^^^^^^^^^^^[0m [1m[91mnot found in this scope[0m
+2026-08-12T14:53:26.1847025Z 
+2026-08-12T14:53:26.2062356Z [1m[93mwarning[0m[1m[97m: unused import: `SampleFormat`[0m
+2026-08-12T14:53:26.2063054Z  [1m[96m--> [0msrc\audio.rs:7:12
+2026-08-12T14:53:26.2063520Z   [1m[96m|[0m
+2026-08-12T14:53:26.2064519Z [1m[96m7[0m [1m[96m|[0m use cpal::{SampleFormat, Stream, StreamConfig};
+2026-08-12T14:53:26.2065200Z   [1m[96m|[0m            [1m[93m^^^^^^^^^^^^[0m
+2026-08-12T14:53:26.2065698Z   [1m[96m|[0m
+2026-08-12T14:53:26.2066569Z   [1m[96m= [0m[1m[97mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+2026-08-12T14:53:26.2067118Z 
+2026-08-12T14:53:26.2182199Z [1m[93mwarning[0m[1m[97m: unused import: `tokio::net::UdpSocket`[0m
+2026-08-12T14:53:26.2182913Z   [1m[96m--> [0msrc\transport.rs:10:5
+2026-08-12T14:53:26.2183411Z    [1m[96m|[0m
+2026-08-12T14:53:26.2184183Z [1m[96m10[0m [1m[96m|[0m use tokio::net::UdpSocket;
+2026-08-12T14:53:26.2184755Z    [1m[96m|[0m     [1m[93m^^^^^^^^^^^^^^^^^^^^^[0m
+2026-08-12T14:53:26.2185088Z 
+2026-08-12T14:53:26.2201925Z [1m[93mwarning[0m[1m[97m: unused import: `Rng`[0m
+2026-08-12T14:53:26.2202657Z   [1m[96m--> [0msrc\main.rs:19:12
+2026-08-12T14:53:26.2203324Z    [1m[96m|[0m
+2026-08-12T14:53:26.2204907Z [1m[96m19[0m [1m[96m|[0m use rand::{Rng, RngExt};
+2026-08-12T14:53:26.2205548Z    [1m[96m|[0m            [1m[93m^^^[0m
+2026-08-12T14:53:26.2205932Z 
+2026-08-12T14:53:26.2206334Z [1m[93mwarning[0m[1m[97m: unused import: `ServiceInfo`[0m
+2026-08-12T14:53:26.2206922Z   [1m[96m--> [0msrc\main.rs:20:30
+2026-08-12T14:53:26.2207342Z    [1m[96m|[0m
+2026-08-12T14:53:26.2208251Z [1m[96m20[0m [1m[96m|[0m use mdns_sd::{ServiceDaemon, ServiceInfo};
+2026-08-12T14:53:26.2209024Z    [1m[96m|[0m                              [1m[93m^^^^^^^^^^^[0m
+2026-08-12T14:53:26.2209347Z 
+2026-08-12T14:53:26.2209849Z [1m[93mwarning[0m[1m[97m: unused import: `std::collections::HashMap`[0m
+2026-08-12T14:53:26.2210775Z   [1m[96m--> [0msrc\main.rs:21:5
+2026-08-12T14:53:26.2211222Z    [1m[96m|[0m
+2026-08-12T14:53:26.2211770Z [1m[96m21[0m [1m[96m|[0m use std::collections::HashMap;
+2026-08-12T14:53:26.2212354Z    [1m[96m|[0m     [1m[93m^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+2026-08-12T14:53:26.2212677Z 
+2026-08-12T14:53:26.2213140Z [1m[93mwarning[0m[1m[97m: unused import: `local_ip_address::local_ip`[0m
+2026-08-12T14:53:26.2213771Z   [1m[96m--> [0msrc\main.rs:22:5
+2026-08-12T14:53:26.2214176Z    [1m[96m|[0m
+2026-08-12T14:53:26.2214716Z [1m[96m22[0m [1m[96m|[0m use local_ip_address::local_ip;
+2026-08-12T14:53:26.2215518Z    [1m[96m|[0m     [1m[93m^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+2026-08-12T14:53:26.2215862Z 
+2026-08-12T14:53:29.2376650Z [1m[93mwarning[0m[1m[97m: unused import: `tauri::Manager`[0m
+2026-08-12T14:53:29.2377465Z    [1m[96m--> [0msrc\main.rs:111:5
+2026-08-12T14:53:29.2377947Z     [1m[96m|[0m
+2026-08-12T14:53:29.2378540Z [1m[96m111[0m [1m[96m|[0m use tauri::Manager;
+2026-08-12T14:53:29.2379186Z     [1m[96m|[0m     [1m[93m^^^^^^^^^^^^^^[0m
+2026-08-12T14:53:29.2379478Z 
+2026-08-12T14:53:29.3379756Z [1m[93mwarning[0m[1m[97m: unused variable: `event`[0m
+2026-08-12T14:53:29.3380798Z   [1m[96m--> [0msrc\control.rs:26:34
+2026-08-12T14:53:29.3381702Z    [1m[96m|[0m
+2026-08-12T14:53:29.3382808Z [1m[96m26[0m [1m[96m|[0m     pub fn dispatch_input(&self, event: InputEvent) -> Result<(), String> {
+2026-08-12T14:53:29.3384432Z    [1m[96m|[0m                                  [1m[93m^^^^^[0m [1m[93mhelp: if this is intentional, prefix it with an underscore: `_event`[0m
+2026-08-12T14:53:29.3385255Z    [1m[96m|[0m
+2026-08-12T14:53:29.3385937Z    [1m[96m= [0m[1m[97mnote[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+2026-08-12T14:53:29.3386417Z 
+2026-08-12T14:53:29.5589707Z [1m[93mwarning[0m[1m[97m: variable does not need to be mutable[0m
+2026-08-12T14:53:29.5591057Z    [1m[96m--> [0msrc\video.rs:495:13
+2026-08-12T14:53:29.5591631Z     [1m[96m|[0m
+2026-08-12T14:53:29.5592281Z [1m[96m495[0m [1m[96m|[0m         let mut wrong_magic = vec![0x00; 35];
+2026-08-12T14:53:29.5593057Z     [1m[96m|[0m             [1m[96m----[0m[1m[93m^^^^^^^^^^^[0m
+2026-08-12T14:53:29.5593668Z     [1m[96m|[0m             [1m[96m|[0m
+2026-08-12T14:53:29.5594388Z     [1m[96m|[0m             [1m[96mhelp: remove this `mut`[0m
+2026-08-12T14:53:29.5594924Z     [1m[96m|[0m
+2026-08-12T14:53:29.5595613Z     [1m[96m= [0m[1m[97mnote[0m: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+2026-08-12T14:53:29.5596192Z 
+2026-08-12T14:53:30.0199209Z [1m[97mSome errors have detailed explanations: E0422, E0425.[0m
+2026-08-12T14:53:30.0200124Z [1m[97mFor more information about an error, try `rustc --explain E0422`.[0m
+2026-08-12T14:53:30.0521896Z [1m[93mwarning[0m: `nexuslink-desktop` (bin "nexuslink-desktop" test) generated 9 warnings
+2026-08-12T14:53:30.0526168Z [1m[91merror[0m: could not compile `nexuslink-desktop` (bin "nexuslink-desktop" test) due to 10 previous errors; 9 warnings emitted
+2026-08-12T14:53:30.1854473Z ##[error]Process completed with exit code 1.

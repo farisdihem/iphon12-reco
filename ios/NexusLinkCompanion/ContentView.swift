@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var manualHostInput: String = "192.168.1.102"
     @State private var manualPortInput: String = "8492"
     @State private var qrPayloadInput: String = ""
+    @State private var isShowingScanner: Bool = false
 
     var body: some View {
         NavigationView {
@@ -134,15 +135,26 @@ struct ContentView: View {
                         TextField("Paste QR Code URL or NexusLink Payload", text: $qrPayloadInput)
                             .textFieldStyle(.roundedBorder)
                         
-                        Button(action: parseAndConnectQR) {
-                            Label("Auto-Connect from QR Payload", systemImage: "qrcode.viewfinder")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(qrPayloadInput.isEmpty ? Color.gray.opacity(0.4) : Color.purple)
-                                .foregroundColor(qrPayloadInput.isEmpty ? Color.secondary : Color.white)
-                                .cornerRadius(12)
+                        HStack(spacing: 12) {
+                            Button(action: parseAndConnectQR) {
+                                Label("Auto-Connect", systemImage: "qrcode.viewfinder")
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(qrPayloadInput.isEmpty ? Color.gray.opacity(0.4) : Color.purple)
+                                    .foregroundColor(qrPayloadInput.isEmpty ? Color.secondary : Color.white)
+                                    .cornerRadius(10)
+                            }
+                            .disabled(qrPayloadInput.isEmpty)
+                            
+                            Button(action: { isShowingScanner = true }) {
+                                Label("Scan QR", systemImage: "camera")
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                            }
                         }
-                        .disabled(qrPayloadInput.isEmpty)
                     }
                     .padding()
                     .background(Color.purple.opacity(0.05))
@@ -165,6 +177,16 @@ struct ContentView: View {
                         Button(action: {
                             let host = manualHostInput.isEmpty ? "192.168.1.102" : manualHostInput
                             let port = UInt16(manualPortInput) ?? 8492
+                            
+                            engine.log("[UI] MANUAL CONNECTION PRESSED")
+                            engine.log("[UI] - RAW PAYLOAD = manual")
+                            engine.log("[UI] - PARSED HOST = \(host)")
+                            engine.log("[UI] - PARSED PORT = \(port)")
+                            engine.log("[UI] - PARSED PIN = \(pinInput)")
+                            engine.log("[UI] - PROTOCOL VERSION = 1")
+                            engine.log("[UI] - ALPN = nexuslink-v2")
+                            
+                            engine.clearStaleUSBTransportAndSwitchToWiFi()
                             engine.startQUICConnection(host: host, port: port, pin: pinInput)
                         }) {
                             Label("Connect & Pair via QUIC", systemImage: "link")
@@ -188,52 +210,115 @@ struct ContentView: View {
             .onAppear {
                 engine.startBonjourDiscovery()
             }
+            .sheet(isPresented: $isShowingScanner) {
+                NavigationView {
+                    QRScannerView { code in
+                        isShowingScanner = false
+                        qrPayloadInput = code
+                        parseAndConnectQR()
+                    }
+                    .navigationTitle("Scan Windows QR Code")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarItems(leading: Button("Cancel") {
+                        isShowingScanner = false
+                    })
+                }
+            }
         }
     }
 
     private func parseAndConnectQR() {
+        let rawPayload = qrPayloadInput.trimmingCharacters(in: .whitespacesAndNewlines)
         engine.log("[UI] parseAndConnectQR CALLED")
-        guard let url = URL(string: qrPayloadInput),
-              let components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
-            engine.log("[PAIRING] ERROR: Invalid QR Code payload format")
+        
+        var parsedHost = ""
+        var parsedPortStr = "8492"
+        var parsedPin = ""
+        var parsedVersion = ""
+        let parsedALPN = "nexuslink-v2"
+        
+        // 1. Detect if it's a raw 6-digit PIN
+        let pinRegex = try? NSRegularExpression(pattern: "^[0-9]{6}$", options: [])
+        let range = NSRange(location: 0, length: rawPayload.utf16.count)
+        let isOnlyPin = pinRegex?.firstMatch(in: rawPayload, options: [], range: range) != nil
+        
+        if isOnlyPin {
+            engine.log("[PAIRING] Raw 6-digit PIN scanned/entered. Extracting PIN directly.")
+            parsedPin = rawPayload
+            parsedHost = manualHostInput.isEmpty ? "192.168.1.102" : manualHostInput
+            parsedPortStr = manualPortInput.isEmpty ? "8492" : manualPortInput
+            parsedVersion = "1"
+        } else {
+            // 2. Parse as a URL
+            var queryItems: [String: String] = [:]
+            if let url = URL(string: rawPayload),
+               let components = URLComponents(url: url, resolvingAgainstBaseURL: true) {
+                if let items = components.queryItems {
+                    for item in items {
+                        if let val = item.value {
+                            queryItems[item.name] = val
+                        }
+                    }
+                }
+            }
+            
+            // Manual fallback string parsing if URLComponents was empty (e.g. invalid scheme structure)
+            if queryItems.isEmpty {
+                if let queryStartIndex = rawPayload.firstIndex(of: "?") {
+                    let queryString = String(rawPayload[rawPayload.index(after: queryStartIndex)...])
+                    let pairs = queryString.components(separatedBy: "&")
+                    for pair in pairs {
+                        let kv = pair.components(separatedBy: "=")
+                        if kv.count == 2 {
+                            queryItems[kv[0]] = kv[1]
+                        }
+                    }
+                }
+            }
+            
+            parsedHost = queryItems["host"] ?? ""
+            parsedPortStr = queryItems["port"] ?? "8492"
+            parsedPin = queryItems["pin"] ?? ""
+            parsedVersion = queryItems["v"] ?? ""
+        }
+        
+        // Expose exact log trace
+        engine.log("[UI] PARSING COMPLETE:")
+        engine.log("[UI] - RAW PAYLOAD = \(rawPayload)")
+        engine.log("[UI] - PARSED HOST = \(parsedHost)")
+        engine.log("[UI] - PARSED PORT = \(parsedPortStr)")
+        engine.log("[UI] - PARSED PIN = \(parsedPin)")
+        engine.log("[UI] - PROTOCOL VERSION = \(parsedVersion)")
+        engine.log("[UI] - ALPN = \(parsedALPN)")
+        
+        // Robust parameter verification and validation
+        guard parsedVersion == "1" else {
+            engine.log("[PAIRING] ERROR: Unsupported/missing protocol version '\(parsedVersion)'. Expected version 1.")
             return
         }
         
-        let host = components.queryItems?.first(where: { $0.name == "host" })?.value ?? ""
-        let portStr = components.queryItems?.first(where: { $0.name == "port" })?.value ?? "8492"
-        let pin = components.queryItems?.first(where: { $0.name == "pin" })?.value ?? ""
-        let version = components.queryItems?.first(where: { $0.name == "v" })?.value ?? ""
-        
-        engine.log("[UI] DECODING QR PAYLOAD:")
-        engine.log("[UI] - HOST = \(host)")
-        engine.log("[UI] - PORT = \(portStr)")
-        engine.log("[UI] - PIN = \(pin)")
-        engine.log("[UI] - VERSION = \(version)")
-        engine.log("[UI] - EXPECTED ALPN = nexuslink-v2")
-        
-        let port = UInt16(portStr) ?? 8492
-        
-        // Strict verification of QR payload schema & parameters
-        guard version == "1" else {
-            engine.log("[PAIRING] ERROR: Unsupported protocol version '\(version)'. Expected version 1.")
+        guard !parsedHost.isEmpty else {
+            engine.log("[PAIRING] ERROR: Missing host parameter in payload")
             return
         }
         
-        guard !host.isEmpty else {
-            engine.log("[PAIRING] ERROR: Missing IP/hostname in QR payload")
+        guard parsedPin.count == 6 else {
+            engine.log("[PAIRING] ERROR: Invalid PIN length '\(parsedPin.count)'. Expected 6-digit PIN.")
             return
         }
         
-        guard pin.count == 6 else {
-            engine.log("[PAIRING] ERROR: Invalid PIN length '\(pin.count)'. Expected 6-digit PIN.")
-            return
-        }
+        let port = UInt16(parsedPortStr) ?? 8492
         
-        self.manualHostInput = host
-        self.pinInput = pin
-        self.manualPortInput = portStr
+        // Sync values back to manual fallback UI fields
+        self.manualHostInput = parsedHost
+        self.manualPortInput = parsedPortStr
+        self.pinInput = parsedPin
         
-        engine.log("[PAIRING] QR payload validated successfully. Connecting...")
-        engine.startQUICConnection(host: host, port: port, pin: pin)
+        engine.log("[PAIRING] Decoded values validated successfully. Transitioning state...")
+        
+        // Clear/stop any stale USB transport and set connectionMode before starting Wi-Fi QUIC
+        engine.clearStaleUSBTransportAndSwitchToWiFi()
+        
+        engine.startQUICConnection(host: parsedHost, port: port, pin: parsedPin)
     }
 }

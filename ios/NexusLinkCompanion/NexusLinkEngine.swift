@@ -69,6 +69,12 @@ public class NexusLinkIOSEngine: ObservableObject {
         self.usbListener = listener
     }
     
+    public func clearStaleUSBTransportAndSwitchToWiFi() {
+        log("[CLEANUP] Clearing active USB connection and switching connectionMode to Wi-Fi")
+        self.connectionMode = "Wi-Fi"
+        usbListener?.closeActiveConnection()
+    }
+    
     /// Step 1: mDNS / Bonjour Discovery to locate Windows PC running NexusLink Server
     public func startBonjourDiscovery() {
         let descriptor = NWBrowser.Descriptor.bonjour(type: "_nexuslink._udp", domain: "local.")
@@ -867,6 +873,12 @@ class USBTransportListener {
     private var connection: NWConnection?
     var onFrameReceived: ((UInt8, Data) -> Void)?
     var onStateChanged: ((String) -> Void)?
+    
+    func closeActiveConnection() {
+        print("[USB] Closing active tunnel connection...")
+        connection?.cancel()
+        connection = nil
+    }
     
     init() {
         startListener()

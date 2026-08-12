@@ -191,8 +191,7 @@ export default function App() {
       <PairingModal
         isOpen={isPairingOpen}
         onClose={() => setIsPairingOpen(false)}
-        
-        
+        lang={lang}
       />
 
       {/* ADB Console Modal */}

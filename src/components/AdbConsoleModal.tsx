@@ -26,22 +26,27 @@ export const AdbConsoleModal: React.FC<AdbConsoleModalProps> = ({
   if (!isOpen) return null;
 
   const handleRunCommand = (cmdToRun?: string) => {
-    const cmd = cmdToRun || inputCmd;
-    if (!cmd.trim()) return;
+    try {
+      const cmd = cmdToRun || inputCmd;
+      if (!cmd || !cmd.trim()) return;
 
-    let response = `Executing: ${cmd}...`;
-    if (cmd.includes('battery')) {
-      response = `Current Battery Status:\n  AC powered: true\n  USB powered: true\n  level: 88\n  scale: 100\n  voltage: 4320mV\n  temperature: 312 (31.2°C)\n  technology: Li-ion`;
-    } else if (cmd.includes('devices')) {
-      response = `List of devices attached:\nSM-S928B_5G\tdevice usb:1-2.4\nA3296_iOS\tdevice wifi:192.168.1.189`;
-    } else if (cmd.includes('logcat')) {
-      response = `08-10 04:00:12.441  1024  1088 I PhoneLinkAudio: AudioPlaybackCapture frame dispatched (1920 bytes, 10ms)\n08-10 04:00:12.451  1024  1088 I PhoneLinkVideo: H.264 NAL frame encoded (18.4 KB, 120 FPS)`;
-    } else {
-      response = `[ADB Success] Command '${cmd}' executed cleanly on device ${deviceName}.`;
+      let response = `Executing: ${cmd}...`;
+      if (cmd.includes('battery')) {
+        response = `Current Battery Status:\n  AC powered: true\n  USB powered: true\n  level: 88\n  scale: 100\n  voltage: 4320mV\n  temperature: 312 (31.2°C)\n  technology: Li-ion`;
+      } else if (cmd.includes('devices')) {
+        response = `List of devices attached:\nSM-S928B_5G\tdevice usb:1-2.4\nA3296_iOS\tdevice usb:172.20.10.12`;
+      } else if (cmd.includes('logcat')) {
+        response = `08-10 04:00:12.441  1024  1088 I PhoneLinkAudio: AudioPlaybackCapture frame dispatched (1920 bytes, 10ms)\n08-10 04:00:12.451  1024  1088 I PhoneLinkVideo: H.264 NAL frame encoded (18.4 KB, 120 FPS)`;
+      } else {
+        response = `[ADB Success] Command '${cmd}' executed cleanly on device ${deviceName}.`;
+      }
+
+      setLogs((prev) => [...(prev || []), `$ ${cmd}`, response]);
+      setInputCmd('');
+    } catch (err) {
+      console.error('[ADB Console Error]:', err);
+      setLogs((prev) => [...(prev || []), `[ERROR] Failed to execute ADB command: ${err instanceof Error ? err.message : String(err)}`]);
     }
-
-    setLogs((prev) => [...prev, `$ ${cmd}`, response]);
-    setInputCmd('');
   };
 
   return (

@@ -1,0 +1,65 @@
+﻿2026-08-12T14:43:41.5154052Z ##[group]Run swatinem/rust-cache@v2
+2026-08-12T14:43:41.5154390Z with:
+2026-08-12T14:43:41.5154574Z   workspaces: src-tauri
+2026-08-12T14:43:41.5154779Z   prefix-key: v0-rust
+2026-08-12T14:43:41.5154973Z   add-job-id-key: true
+2026-08-12T14:43:41.5155186Z   add-rust-environment-hash-key: true
+2026-08-12T14:43:41.5155453Z   cache-targets: true
+2026-08-12T14:43:41.5155646Z   cache-all-crates: false
+2026-08-12T14:43:41.5155956Z   cache-workspace-crates: false
+2026-08-12T14:43:41.5156454Z   save-if: true
+2026-08-12T14:43:41.5156644Z   cache-provider: github
+2026-08-12T14:43:41.5156845Z   cache-bin: true
+2026-08-12T14:43:41.5157025Z   lookup-only: false
+2026-08-12T14:43:41.5157207Z   cmd-format: {0}
+2026-08-12T14:43:41.5157373Z env:
+2026-08-12T14:43:41.5157548Z   CMAKE_POLICY_VERSION_MINIMUM: 3.5
+2026-08-12T14:43:41.5157823Z   CMAKE_FLAGS: -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+2026-08-12T14:43:41.5158114Z   CARGO_HOME: C:\Users\runneradmin\.cargo
+2026-08-12T14:43:41.5158352Z   CARGO_INCREMENTAL: 0
+2026-08-12T14:43:41.5158590Z   CARGO_TERM_COLOR: always
+2026-08-12T14:43:41.5158790Z ##[endgroup]
+2026-08-12T14:43:43.7845950Z ##[group]Cache Configuration
+2026-08-12T14:43:43.7846655Z Cache Provider:
+2026-08-12T14:43:43.7846962Z     github
+2026-08-12T14:43:43.7847231Z Workspaces:
+2026-08-12T14:43:43.7847635Z     D:\a\iphon12-reco\iphon12-reco\src-tauri
+2026-08-12T14:43:43.7848606Z Cache Paths:
+2026-08-12T14:43:43.7849100Z     C:\Users\runneradmin\.cargo\bin
+2026-08-12T14:43:43.7849725Z     C:\Users\runneradmin\.cargo\.crates.toml
+2026-08-12T14:43:43.7850210Z     C:\Users\runneradmin\.cargo\.crates2.json
+2026-08-12T14:43:43.7850683Z     C:\Users\runneradmin\.cargo\registry
+2026-08-12T14:43:43.7851125Z     C:\Users\runneradmin\.cargo\git
+2026-08-12T14:43:43.7851611Z     D:\a\iphon12-reco\iphon12-reco\src-tauri\target
+2026-08-12T14:43:43.7852066Z Restore Key:
+2026-08-12T14:43:43.7852441Z     v0-rust-build-windows-Windows_NT-x64-39989149
+2026-08-12T14:43:43.7852893Z Cache Key:
+2026-08-12T14:43:43.7853323Z     v0-rust-build-windows-Windows_NT-x64-39989149-7403f439
+2026-08-12T14:43:43.7853833Z .. Prefix:
+2026-08-12T14:43:43.7854256Z   - v0-rust-build-windows-Windows_NT-x64
+2026-08-12T14:43:43.7854739Z .. Environment considered:
+2026-08-12T14:43:43.7855068Z   - Rust Versions:
+2026-08-12T14:43:43.7856042Z     - 1.97.1 x86_64-pc-windows-msvc 8bab26f4f68e0e26f0bb7960be334d5b520ea452
+2026-08-12T14:43:43.7856633Z   - CARGO_HOME
+2026-08-12T14:43:43.7856918Z   - CARGO_INCREMENTAL
+2026-08-12T14:43:43.7857235Z   - CARGO_TERM_COLOR
+2026-08-12T14:43:43.7857529Z   - CMAKE_FLAGS
+2026-08-12T14:43:43.7857845Z   - CMAKE_POLICY_VERSION_MINIMUM
+2026-08-12T14:43:43.7858244Z .. Lockfiles considered:
+2026-08-12T14:43:43.7858692Z   - D:\a\iphon12-reco\iphon12-reco\src-tauri\Cargo.lock
+2026-08-12T14:43:43.7859263Z   - D:\a\iphon12-reco\iphon12-reco\src-tauri\Cargo.toml
+2026-08-12T14:43:43.7859958Z ##[endgroup]
+2026-08-12T14:43:43.7860121Z 
+2026-08-12T14:43:43.7860276Z ... Restoring cache ...
+2026-08-12T14:43:44.0277058Z Cache hit for: v0-rust-build-windows-Windows_NT-x64-39989149-7403f439
+2026-08-12T14:43:45.1514992Z Received 134217728 of 1095685710 (12.2%), 128.0 MBs/sec
+2026-08-12T14:43:46.1624131Z Received 322961408 of 1095685710 (29.5%), 153.1 MBs/sec
+2026-08-12T14:43:47.1652276Z Received 528482304 of 1095685710 (48.2%), 167.2 MBs/sec
+2026-08-12T14:43:48.2232651Z Received 671088640 of 1095685710 (61.2%), 157.3 MBs/sec
+2026-08-12T14:43:49.2285565Z Received 838860800 of 1095685710 (76.6%), 157.7 MBs/sec
+2026-08-12T14:43:50.2282262Z Received 1006632960 of 1095685710 (91.9%), 158.0 MBs/sec
+2026-08-12T14:43:51.1555662Z Received 1095685710 of 1095685710 (100.0%), 149.2 MBs/sec
+2026-08-12T14:43:51.1558704Z Cache Size: ~1045 MB (1095685710 B)
+2026-08-12T14:43:51.1596309Z [command]"C:\Program Files\Git\usr\bin\tar.exe" -xf D:/a/_temp/7d4e54f2-1420-4f5c-ab2e-395f713f7adf/cache.tzst -P -C D:/a/iphon12-reco/iphon12-reco --force-local --use-compress-program "zstd -d"
+2026-08-12T14:44:08.1695519Z Cache restored successfully
+2026-08-12T14:44:08.2370742Z Restored from cache key "v0-rust-build-windows-Windows_NT-x64-39989149-7403f439" full match: true.

@@ -187,7 +187,7 @@ export default function App() {
         lang={lang}
       />
 
-      {.* Pairing USB Modal .*}
+      {/* Pairing USB Modal */}
       <PairingModal
         isOpen={isPairingOpen}
         onClose={() => setIsPairingOpen(false)}

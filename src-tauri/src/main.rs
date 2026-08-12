@@ -37,6 +37,82 @@ pub struct AppState {
     pub mdns: Mutex<Option<ServiceDaemon>>,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct UsbNetworkInfo {
+    pub interface_name: String,
+    pub ip_address: String,
+    pub gateway: String,
+    pub status: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct UsbConnectionStatus {
+    pub usb_available: bool,
+    pub network_info: Option<UsbNetworkInfo>,
+    pub quic_port: u16,
+    pub pin: String,
+}
+
+#[tauri::command]
+async fn get_usb_connection_status(state: State<'_, AppState>) -> Result<UsbConnectionStatus, String> {
+    // Detect USB network interface (Apple/iPhone USB Personal Hotspot)
+    // Common networks: 172.20.10.x (iOS), 192.168.137.x (Windows Mobile Hotspot)
+    
+    let interfaces = detect_usb_network_interfaces();
+    
+    if let Some(iface) = interfaces.first() {
+        let mut rng = rand::rng();
+        let pin: u32 = rng.random_range(100000..999999);
+        let pin_str = pin.to_string();
+        
+        *state.current_pin.lock().unwrap() = Some(pin_str.clone());
+        
+        Ok(UsbConnectionStatus {
+            usb_available: true,
+            network_info: Some(iface.clone()),
+            quic_port: 8492,
+            pin: pin_str,
+        })
+    } else {
+        Ok(UsbConnectionStatus {
+            usb_available: false,
+            network_info: None,
+            quic_port: 8492,
+            pin: String::new(),
+        })
+    }
+}
+
+fn detect_usb_network_interfaces() -> Vec<UsbNetworkInfo> {
+    let mut interfaces = Vec::new();
+    
+    // Check for common USB tethering network ranges
+    // iOS Personal Hotspot: 172.20.10.x with gateway 172.20.10.1
+    // Windows Mobile Hotspot: 192.168.137.x with gateway 192.168.137.1
+    
+    if let Ok(ip) = local_ip() {
+        let ip_str = ip.to_string();
+        
+        // Check if IP is in USB tethering range
+        if ip_str.starts_with("172.20.10.") || ip_str.starts_with("192.168.137.") {
+            let gateway = if ip_str.starts_with("172.20.10.") {
+                "172.20.10.1"
+            } else {
+                "192.168.137.1"
+            };
+            
+            interfaces.push(UsbNetworkInfo {
+                interface_name: "USB Ethernet".to_string(),
+                ip_address: ip_str,
+                gateway: gateway.to_string(),
+                status: "Connected".to_string(),
+            });
+        }
+    }
+    
+    interfaces
+}
+
 #[tauri::command]
 async fn get_pairing_payload(state: State<'_, AppState>) -> Result<PairingPayload, String> {
     let mut rng = rand::rng();
@@ -48,7 +124,7 @@ async fn get_pairing_payload(state: State<'_, AppState>) -> Result<PairingPayloa
     let host = local_ip().map(|ip| ip.to_string()).unwrap_or_else(|_| "127.0.0.1".into());
     let port = 8492;
     
-    // Register mDNS
+    // Register mDNS (kept for backward compatibility, but not used in USB-only mode)
     let mdns = ServiceDaemon::new().map_err(|e| e.to_string())?;
     let instance_name = "NexusLink-PC";
     let service_type = "_nexuslink._udp.local.";
@@ -278,6 +354,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             get_system_status,
             get_pairing_payload,
+            get_usb_connection_status,
             initiate_device_pairing,
             start_telemetry_stream,
             run_audio_loop_test,

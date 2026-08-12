@@ -22,8 +22,10 @@ public class NexusLinkIOSEngine: ObservableObject {
     @Published public var isScreenCapturing: Bool = false
     @Published public var connectionStatus: String = "Disconnected"
     @Published public var discoveredServers: [DiscoveredServer] = []
-    @Published public var connectionMode: String = "Wi-Fi"
-    @Published public var diagnosticLogs: [String] = ["App Initialized", "Waiting for action..."]
+    @Published public var connectionMode: String = "USB"
+    @Published public var diagnosticLogs: [String] = ["App Initialized", "Waiting for USB network..."]
+    @Published public var usbNetworkAvailable: Bool = false
+    @Published public var detectedWindowsIP: String = "Detecting..."
     
     public func log(_ message: String) {
         print(message)
@@ -44,7 +46,85 @@ public class NexusLinkIOSEngine: ObservableObject {
     private var usbListener: USBTransportListener?
     
     public init() {
-        startUSBListener()
+        startUSBDetection()
+    }
+    
+    /// Detect USB network interface and Windows IP address
+    public func startUSBDetection() {
+        log("[USB] Starting USB network detection...")
+        
+        // Use Network framework to detect the USB Ethernet interface
+        // iPhone USB Personal Hotspot creates a USB Ethernet interface
+        let parameters = NWParameters.tcp
+        parameters.requiredInterfaceType = .wiredEthernet
+        
+        // Try to detect the gateway IP which is typically the Windows PC
+        // Common USB hotspot networks: 172.20.10.x, 192.168.137.x
+        detectWindowsIPViaRouteTable()
+    }
+    
+    private func detectWindowsIPViaRouteTable() {
+        // Check common USB tethering network ranges
+        let usbNetworks = [
+            "172.20.10.1",   // iOS Personal Hotspot default gateway
+            "192.168.137.1", // Windows Mobile Hotspot default
+            "172.20.10.2",   // Possible Windows IP in USB hotspot
+            "192.168.137.2"  // Possible Windows IP in USB hotspot
+        ]
+        
+        for ip in usbNetworks {
+            checkReachability(host: ip) { [weak self] isReachable in
+                guard let self = self else { return }
+                Task { @MainActor in
+                    if isReachable {
+                        self.usbNetworkAvailable = true
+                        self.detectedWindowsIP = ip
+                        self.connectionMode = "USB"
+                        self.connectionStatus = "USB Ready"
+                        self.log("[USB] NETWORK PATH AVAILABLE")
+                        self.log("[USB] Windows IP detected: \(ip)")
+                        
+                        // Start USB listener for direct tunnel mode
+                        self.startUSBListener()
+                    }
+                }
+            }
+        }
+        
+        // If no known IP found, stay in waiting state
+        Task { @MainActor in
+            if !usbNetworkAvailable {
+                self.log("[USB] Waiting for USB network connection...")
+                self.connectionStatus = "Waiting for USB network..."
+            }
+        }
+    }
+    
+    private func checkReachability(host: String, completion: @escaping (Bool) -> Void) {
+        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: 8492)!)
+        let connection = NWConnection(to: endpoint, using: .tcp)
+        
+        connection.stateUpdateHandler = { state in
+            switch state {
+            case .ready:
+                completion(true)
+                connection.cancel()
+            case .failed, .cancelled:
+                completion(false)
+            default:
+                break
+            }
+        }
+        
+        connection.start(queue: DispatchQueue.global(qos: .background))
+        
+        // Timeout after 1 second
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 1.0) {
+            if connection.state == .preparing || connection.state == .waiting {
+                connection.cancel()
+                completion(false)
+            }
+        }
     }
 
     private func startUSBListener() {
@@ -53,8 +133,7 @@ public class NexusLinkIOSEngine: ObservableObject {
             guard let self = self else { return }
             Task { @MainActor in
                 self.connectionMode = "USB"
-                self.connectionStatus = "Connected via USB"
-                print("[USB] ACTIVE STATE RECEIVED")
+                self.log("[USB] ACTIVE STATE RECEIVED")
                 // Automatically send HELLO on connect
                 self.sendUSBDeviceInfoHandshake()
             }
@@ -88,13 +167,14 @@ public class NexusLinkIOSEngine: ObservableObject {
     }
     
     /// Step 2: Establish QUIC / TLS 1.3 Transport to Windows PC
-    public func startQUICConnection(host: String, port: UInt16, pin: String? = nil) {
+    public func startQUICConnection(host: String, port: UInt16, pin: String? = nil, viaUSB: Bool = false) {
         self.pendingPinCode = pin
         
-        log("[UI] CONNECT BUTTON PRESSED")
-        log("[UI] IP = \(host)")
-        log("[UI] PORT = \(port)")
-        log("[UI] PIN = \(pin ?? "")")
+        let connectionType = viaUSB ? "USB" : "Network"
+        log("[\(connectionType)] CONNECT BUTTON PRESSED")
+        log("[\(connectionType)] IP = \(host)")
+        log("[\(connectionType)] PORT = \(port)")
+        log("[\(connectionType)] PIN = \(pin ?? "")")
         
         log("[QUIC] CREATING NWConnection")
         log("[QUIC] HOST = \(host)")
@@ -149,7 +229,7 @@ public class NexusLinkIOSEngine: ObservableObject {
                     self.log("[QUIC] STATE ready")
                     self.log("[TLS] SUCCESS")
                     self.log("[ALPN] nexuslink-v2")
-                    self.connectionStatus = "Connected via Wi-Fi QUIC"
+                    self.connectionStatus = viaUSB ? "Connected via USB QUIC" : "Connected via QUIC"
                     self.listenForMessages()
                     self.sendDeviceInfoHandshake()
                     self.sendPing()

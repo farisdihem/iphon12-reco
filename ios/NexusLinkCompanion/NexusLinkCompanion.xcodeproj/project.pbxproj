@@ -10,12 +10,14 @@
 		A10000012A3B4C5D00000001 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012A3B4C5D00000002 /* App.swift */; };
 		A10000012A3B4C5D00000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012A3B4C5D00000004 /* ContentView.swift */; };
 		A10000012A3B4C5D00000005 /* NexusLinkEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012A3B4C5D00000006 /* NexusLinkEngine.swift */; };
+		A10000012A3B4C5D00000015 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012A3B4C5D00000016 /* QRScannerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A10000012A3B4C5D00000002 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		A10000012A3B4C5D00000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A10000012A3B4C5D00000006 /* NexusLinkEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NexusLinkEngine.swift; sourceTree = "<group>"; };
+		A10000012A3B4C5D00000016 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		A10000012A3B4C5D00000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000012A3B4C5D00000008 /* NexusLinkCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NexusLinkCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -35,6 +37,7 @@
 				A10000012A3B4C5D00000002 /* App.swift */,
 				A10000012A3B4C5D00000004 /* ContentView.swift */,
 				A10000012A3B4C5D00000006 /* NexusLinkEngine.swift */,
+				A10000012A3B4C5D00000016 /* QRScannerView.swift */,
 				A10000012A3B4C5D00000007 /* Info.plist */,
 			);
 			path = ".";
@@ -102,6 +105,7 @@
 				A10000012A3B4C5D00000001 /* App.swift in Sources */,
 				A10000012A3B4C5D00000003 /* ContentView.swift in Sources */,
 				A10000012A3B4C5D00000005 /* NexusLinkEngine.swift in Sources */,
+				A10000012A3B4C5D00000015 /* QRScannerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

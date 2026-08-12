@@ -1,0 +1,177 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000012A3B4C5D00000001 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012A3B4C5D00000002 /* App.swift */; };
+		A10000012A3B4C5D00000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012A3B4C5D00000004 /* ContentView.swift */; };
+		A10000012A3B4C5D00000005 /* NexusLinkEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012A3B4C5D00000006 /* NexusLinkEngine.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A10000012A3B4C5D00000002 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		A10000012A3B4C5D00000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A10000012A3B4C5D00000006 /* NexusLinkEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NexusLinkEngine.swift; sourceTree = "<group>"; };
+		A10000012A3B4C5D00000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000012A3B4C5D00000008 /* NexusLinkCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NexusLinkCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		A10000012A3B4C5D00000009 = {
+			isa = PBXGroup;
+			children = (
+				A10000012A3B4C5D0000000A /* NexusLinkCompanion */,
+				A10000012A3B4C5D0000000B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A10000012A3B4C5D0000000A /* NexusLinkCompanion */ = {
+			isa = PBXGroup;
+			children = (
+				A10000012A3B4C5D00000002 /* App.swift */,
+				A10000012A3B4C5D00000004 /* ContentView.swift */,
+				A10000012A3B4C5D00000006 /* NexusLinkEngine.swift */,
+				A10000012A3B4C5D00000007 /* Info.plist */,
+			);
+			path = ".";
+			sourceTree = "<group>";
+		};
+		A10000012A3B4C5D0000000B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A10000012A3B4C5D00000008 /* NexusLinkCompanion.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000012A3B4C5D0000000C /* NexusLinkCompanion */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000012A3B4C5D0000000D /* Build configuration list for PBXNativeTarget "NexusLinkCompanion" */;
+			buildPhases = (
+				A10000012A3B4C5D0000000E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NexusLinkCompanion;
+			productName = NexusLinkCompanion;
+			productReference = A10000012A3B4C5D00000008 /* NexusLinkCompanion.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10000012A3B4C5D0000000F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = A10000012A3B4C5D00000010 /* Build configuration list for PBXProject "NexusLinkCompanion" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A10000012A3B4C5D00000009;
+			productRefGroup = A10000012A3B4C5D0000000B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10000012A3B4C5D0000000C /* NexusLinkCompanion */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10000012A3B4C5D0000000E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000012A3B4C5D00000001 /* App.swift in Sources */,
+				A10000012A3B4C5D00000003 /* ContentView.swift in Sources */,
+				A10000012A3B4C5D00000005 /* NexusLinkEngine.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A10000012A3B4C5D00000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nexuslink.ios.companion;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A10000012A3B4C5D00000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nexuslink.ios.companion;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A10000012A3B4C5D00000013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		A10000012A3B4C5D00000014 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A10000012A3B4C5D0000000D /* Build configuration list for PBXNativeTarget "NexusLinkCompanion" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000012A3B4C5D00000011 /* Debug */,
+				A10000012A3B4C5D00000012 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000012A3B4C5D00000010 /* Build configuration list for PBXProject "NexusLinkCompanion" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000012A3B4C5D00000013 /* Debug */,
+				A10000012A3B4C5D00000014 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A10000012A3B4C5D0000000F /* Project object */;
+}

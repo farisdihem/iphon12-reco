@@ -1,0 +1,50 @@
+name: Build iOS Companion (Unsigned IPA)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: Build iOS App Archive
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: |
+          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer || sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Build and Archive iOS App (Unsigned)
+        run: |
+          cd ios/NexusLinkCompanion
+          xcodebuild archive \
+            -project NexusLinkCompanion.xcodeproj \
+            -scheme NexusLinkCompanion \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath ./build/NexusLinkCompanion.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Create Unsigned IPA Package
+        run: |
+          cd ios/NexusLinkCompanion/build
+          mkdir -p Payload
+          cp -r NexusLinkCompanion.xcarchive/Products/Applications/NexusLinkCompanion.app Payload/
+          zip -r NexusLinkCompanion_Unsigned.ipa Payload
+          zip -r NexusLinkCompanion.app.zip Payload/NexusLinkCompanion.app
+
+      - name: Upload iOS App Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NexusLinkCompanion-iOS-App
+          path: |
+            ios/NexusLinkCompanion/build/NexusLinkCompanion_Unsigned.ipa
+            ios/NexusLinkCompanion/build/NexusLinkCompanion.app.zip

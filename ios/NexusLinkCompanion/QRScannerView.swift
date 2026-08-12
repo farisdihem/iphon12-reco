@@ -5,6 +5,7 @@
 
 import SwiftUI
 import AVFoundation
+import AudioToolbox
 
 public struct QRScannerView: UIViewControllerRepresentable {
     public var didFindCode: (String) -> Void

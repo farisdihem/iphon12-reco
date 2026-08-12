@@ -5,6 +5,7 @@
 
 import Foundation
 import AVFoundation
+import AudioToolbox
 import ReplayKit
 import Network
 import VideoToolbox
@@ -541,6 +542,11 @@ public class NexusLinkIOSEngine: ObservableObject {
 // =========================================================================
 // Native iOS Swift Opus Encoder via AudioToolbox / AudioConverter
 // =========================================================================
+private struct OpusEncoderUserData {
+    var data: Data
+    var packetSize: UInt32
+}
+
 public class SwiftOpusEncoder {
     private var audioConverter: AudioConverterRef?
     private var sampleRate: Float64 = 48000.0
@@ -591,12 +597,7 @@ public class SwiftOpusEncoder {
         
         var outputBuffer = [UInt8](repeating: 0, count: 1275) // max opus frame size
 
-        struct UserData {
-            var data: Data
-            var packetSize: UInt32
-        }
-
-        var userData = UserData(data: pcmData, packetSize: UInt32(pcmData.count))
+        var userData = OpusEncoderUserData(data: pcmData, packetSize: UInt32(pcmData.count))
 
         let callback: AudioConverterComplexInputDataProc = { (
             inAudioConverter,
@@ -606,7 +607,7 @@ public class SwiftOpusEncoder {
             inUserData
         ) -> OSStatus in
             guard let inUserData = inUserData else { return noErr }
-            let userData = inUserData.assumingMemoryBound(to: UserData.self)
+            let userData = inUserData.assumingMemoryBound(to: OpusEncoderUserData.self)
             
             if userData.pointee.packetSize == 0 {
                 ioNumberDataPackets.pointee = 0
@@ -615,9 +616,10 @@ public class SwiftOpusEncoder {
 
             userData.pointee.data.withUnsafeBytes { rawPtr in
                 if let baseAddress = rawPtr.baseAddress {
-                    ioData.pointee.mBuffers.mData = UnsafeMutableRawPointer(mutating: baseAddress)
-                    ioData.pointee.mBuffers.mDataByteSize = userData.pointee.packetSize
-                    ioData.pointee.mBuffers.mNumberChannels = 2
+                    let buffers = UnsafeMutableAudioBufferListPointer(ioData)
+                    buffers[0].mData = UnsafeMutableRawPointer(mutating: baseAddress)
+                    buffers[0].mDataByteSize = userData.pointee.packetSize
+                    buffers[0].mNumberChannels = 2
                 }
             }
 
@@ -649,7 +651,7 @@ public class SwiftOpusEncoder {
                     nil
                 )
             }
-            producedSize = Int(outputBufferList.mBuffers.mDataByteSize)
+            producedSize = Int(outputBufferList.mBuffers.0.mDataByteSize)
             return res
         }
 

@@ -25,7 +25,7 @@ export const PairingModal: React.FC<PairingModalProps> = ({
     invoke<{ pin: string; usb_networks: UsbNetworkInfo[] }>('get_pairing_payload')
       .then((payload) => {
         setPinCode(payload.pin);
-        setUsbNetworks(payload.usb_networks);
+        setUsbNetworks(payload.usb_networks || (payload as any).usbNetworks || []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -83,7 +83,7 @@ export const PairingModal: React.FC<PairingModalProps> = ({
               </button>
             </div>
             
-            {usbNetworks.length === 0 ? (
+            {(!usbNetworks || usbNetworks.length === 0) ? (
               <div className="text-sm text-yellow-400/90 text-center py-2 bg-yellow-500/10 rounded-lg">
                 No USB networks detected. Connect your iPhone and enable Personal Hotspot over USB.
               </div>

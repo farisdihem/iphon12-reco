@@ -4,7 +4,7 @@ struct ContentView: View {
     @EnvironmentObject var engine: NexusLinkIOSEngine
     
     @State private var pinInput: String = ""
-    @State private var manualHostInput: String = "172.20.10.2"
+    @State private var manualHostInput: String = ""
     @State private var manualPortInput: String = "8492"
     
     var body: some View {
@@ -14,7 +14,7 @@ struct ContentView: View {
                     
                     // Connection Status
                     VStack(spacing: 12) {
-                        Image(systemName: "personalhotspot")
+                        Image(systemName: "cable.connector")
                             .font(.system(size: 48))
                             .foregroundColor(.blue)
                             .padding(.bottom, 4)
@@ -23,7 +23,7 @@ struct ContentView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                         
-                        Text(engine.connectionStatus)
+                        Text(engine.connectionStatus.contains("Connected") || engine.connectionStatus.contains("Successfully") ? "USB Network:\nConnected" : "USB Connection:\nWaiting for USB network...")
                             .font(.headline)
                             .foregroundColor(engine.connectionStatus.contains("Connected") || engine.connectionStatus.contains("Successfully") ? .green : .orange)
                             .multilineTextAlignment(.center)
@@ -69,7 +69,6 @@ struct ContentView: View {
                             engine.log("[USB] NETWORK PATH AVAILABLE")
                             engine.log("[CONNECT] \(host):\(port)")
                             
-                            engine.clearStaleUSBTransportAndSwitchToWiFi() // We can keep this or just call startQUICConnection
                             engine.startQUICConnection(host: host, port: port, pin: pinInput)
                         }) {
                             Label("Connect via USB", systemImage: "cable.connector")

@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 use std::sync::Mutex;
 use rand::{Rng, RngExt};
-use mdns_sd::{ServiceDaemon, ServiceInfo};
+
 use std::collections::HashMap;
 use local_ip_address::local_ip;
 use std::sync::Arc;
@@ -39,7 +39,7 @@ pub struct PairingPayload {
 
 pub struct AppState {
     pub current_pin: Arc<Mutex<Option<String>>>,
-    pub mdns: Mutex<Option<ServiceDaemon>>,
+    pub 
 }
 
 #[tauri::command]
@@ -150,7 +150,7 @@ fn main() {
         })
         .manage(AppState {
             current_pin: current_pin.clone(),
-            mdns: Mutex::new(None),
+            
         })
         .invoke_handler(tauri::generate_handler![
             get_system_status,

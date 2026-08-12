@@ -1,5 +1,5 @@
 // =========================================================================
-// NexusLink iOS Companion - Main User Interface
+// NexusLink iOS Companion - Main User Interface (USB-ONLY MODE)
 // File: ios/NexusLinkCompanion/ContentView.swift
 // =========================================================================
 
@@ -8,10 +8,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var engine: NexusLinkIOSEngine
     @State private var pinInput: String = ""
-    @State private var manualHostInput: String = "192.168.1.102"
-    @State private var manualPortInput: String = "8492"
-    @State private var qrPayloadInput: String = ""
-
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -20,7 +17,7 @@ struct ContentView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Circle()
-                                .fill(engine.connectionStatus.contains("Successfully") || engine.connectionStatus.contains("Connected") ? Color.green : Color.orange)
+                                .fill(engine.connectionStatus.contains("Successfully") || engine.connectionStatus.contains("Connected") ? Color.green : (engine.connectionStatus.contains("Waiting") ? Color.orange : Color.red))
                                 .frame(width: 12, height: 12)
                             Text(engine.connectionStatus)
                                 .font(.headline)
@@ -31,10 +28,10 @@ struct ContentView: View {
                             Text("Connection Mode:")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                            Text(engine.connectionMode)
+                            Text("USB ONLY")
                                 .font(.subheadline)
                                 .bold()
-                                .foregroundColor(engine.connectionMode == "USB" ? .blue : .purple)
+                                .foregroundColor(.blue)
                             Spacer()
                         }
                     }
@@ -80,9 +77,67 @@ struct ContentView: View {
                     .background(Color.secondary.opacity(0.05))
                     .cornerRadius(12)
 
-                    // Global 6-Digit PIN input for Discovery
+                    // USB Connection Status Block
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Image(systemName: engine.usbNetworkAvailable ? "usb.plug.fill" : "usb.plug")
+                                .foregroundColor(engine.usbNetworkAvailable ? .green : .orange)
+                            Text("USB Connection")
+                                .font(.headline)
+                            Spacer()
+                        }
+                        
+                        if engine.usbNetworkAvailable {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("USB Network:")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("Connected")
+                                        .font(.caption)
+                                        .bold()
+                                        .foregroundColor(.green)
+                                    Spacer()
+                                }
+                                
+                                HStack {
+                                    Text("Windows IP:")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(engine.detectedWindowsIP)
+                                        .font(.caption)
+                                        .bold()
+                                        .foregroundColor(.blue)
+                                    Spacer()
+                                }
+                                
+                                HStack {
+                                    Text("Port:")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("8492")
+                                        .font(.caption)
+                                        .bold()
+                                    Spacer()
+                                }
+                            }
+                            .padding(8)
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(8)
+                        } else {
+                            Text("Waiting for USB network...")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .padding(.vertical, 8)
+                        }
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.05))
+                    .cornerRadius(12)
+
+                    // Pairing PIN Input
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Pairing PIN (Required for Connection)")
+                        Text("Pairing PIN (Enter 6-digit PIN from Windows)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         TextField("6-Digit PIN (e.g. 901629)", text: $pinInput)
@@ -90,127 +145,43 @@ struct ContentView: View {
                             .keyboardType(.numberPad)
                     }
                     .padding()
-                    .background(Color.blue.opacity(0.05))
+                    .background(Color.secondary.opacity(0.1))
                     .cornerRadius(12)
 
-                    // Discovered Windows PCs
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Discovered Windows PCs")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        if engine.discoveredServers.isEmpty {
-                            Text("Searching LAN via mDNS (_nexuslink._udp)...")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                                .padding(.vertical, 8)
-                        } else {
-                            ForEach(engine.discoveredServers) { server in
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(server.name).font(.headline)
-                                        Text("\(server.host):\(server.port)").font(.caption).foregroundColor(.gray)
-                                    }
-                                    Spacer()
-                                    Button("Connect & Pair") {
-                                        engine.startQUICConnection(host: server.host, port: server.port, pin: pinInput)
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .disabled(pinInput.count != 6)
-                                }
-                                .padding()
-                                .background(Color.secondary.opacity(0.05))
-                                .cornerRadius(8)
-                            }
-                        }
+                    // Connect Button
+                    Button(action: {
+                        connectViaUSB(pin: pinInput)
+                    }) {
+                        Label("Connect via USB", systemImage: "link")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(pinInput.count == 6 && engine.usbNetworkAvailable ? Color.blue : Color.gray.opacity(0.4))
+                            .foregroundColor(pinInput.count == 6 && engine.usbNetworkAvailable ? Color.white : Color.secondary)
+                            .cornerRadius(12)
                     }
-
-                    // QR Code Payload Auto-Pairing Block
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Auto-Pair from QR Code Payload")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        TextField("Paste QR Code URL or NexusLink Payload", text: $qrPayloadInput)
-                            .textFieldStyle(.roundedBorder)
-                        
-                        Button(action: parseAndConnectQR) {
-                            Label("Auto-Connect from QR Payload", systemImage: "qrcode.viewfinder")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(qrPayloadInput.isEmpty ? Color.gray.opacity(0.4) : Color.purple)
-                                .foregroundColor(qrPayloadInput.isEmpty ? Color.secondary : Color.white)
-                                .cornerRadius(12)
-                        }
-                        .disabled(qrPayloadInput.isEmpty)
-                    }
-                    .padding()
-                    .background(Color.purple.opacity(0.05))
-                    .cornerRadius(12)
-
-                    // Manual Pairing Block
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Manual QUIC / TLS 1.3 Parameters")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        TextField("PC IP Address (e.g. 192.168.1.102)", text: $manualHostInput)
-                            .textFieldStyle(.roundedBorder)
-                            .keyboardType(.numbersAndPunctuation)
-
-                        TextField("QUIC Port (default 8492)", text: $manualPortInput)
-                            .textFieldStyle(.roundedBorder)
-                            .keyboardType(.numberPad)
-
-                        Button(action: {
-                            let host = manualHostInput.isEmpty ? "192.168.1.102" : manualHostInput
-                            let port = UInt16(manualPortInput) ?? 8492
-                            engine.startQUICConnection(host: host, port: port, pin: pinInput)
-                        }) {
-                            Label("Connect & Pair via QUIC", systemImage: "link")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(pinInput.count == 6 ? Color.blue : Color.gray.opacity(0.4))
-                                .foregroundColor(pinInput.count == 6 ? Color.white : Color.secondary)
-                                .cornerRadius(12)
-                        }
-                        .disabled(pinInput.count != 6)
-                    }
-                    .padding()
-                    .background(Color.secondary.opacity(0.05))
-                    .cornerRadius(12)
-
+                    .disabled(pinInput.count != 6 || !engine.usbNetworkAvailable)
+                    
                     Spacer()
                 }
                 .padding()
             }
             .navigationTitle("NexusLink Pro")
             .onAppear {
-                engine.startBonjourDiscovery()
+                engine.startUSBDetection()
             }
         }
     }
-
-    private func parseAndConnectQR() {
-        guard let url = URL(string: qrPayloadInput),
-              let components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
-            print("[PAIRING] Invalid QR Code payload format")
+    
+    private func connectViaUSB(pin: String) {
+        guard engine.usbNetworkAvailable else {
+            engine.log("[CONNECT] USB network not available")
             return
         }
         
-        let host = components.queryItems?.first(where: { $0.name == "host" })?.value ?? ""
-        let portStr = components.queryItems?.first(where: { $0.name == "port" })?.value ?? "8492"
-        let pin = components.queryItems?.first(where: { $0.name == "pin" })?.value ?? ""
+        let host = engine.detectedWindowsIP.isEmpty ? "172.20.10.1" : engine.detectedWindowsIP
+        let port: UInt16 = 8492
         
-        let port = UInt16(portStr) ?? 8492
-        
-        if !host.isEmpty && !pin.isEmpty {
-            self.manualHostInput = host
-            self.pinInput = pin
-            self.manualPortInput = portStr
-            engine.startQUICConnection(host: host, port: port, pin: pin)
-        } else {
-            print("[PAIRING] QR payload missing vital parameters (host, pin)")
-        }
+        engine.log("[CONNECT] Initiating USB connection to \(host):\(port)")
+        engine.startQUICConnection(host: host, port: port, pin: pin, viaUSB: true)
     }
 }

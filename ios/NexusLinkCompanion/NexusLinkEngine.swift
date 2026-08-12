@@ -43,6 +43,10 @@ public class NexusLinkIOSEngine: ObservableObject {
     private var videoPacketizer = SwiftVideoPacketizer()
     private var usbListener: USBTransportListener?
     
+    // Dedicated background serial dispatch queues to prevent deadlock and connection crashes
+    private let tlsQueue = DispatchQueue(label: "com.nexuslink.tls", qos: .userInitiated)
+    private let connectionQueue = DispatchQueue(label: "com.nexuslink.connection", qos: .userInitiated)
+    
     public init() {
         startUSBListener()
     }
@@ -90,44 +94,48 @@ public class NexusLinkIOSEngine: ObservableObject {
     /// Step 2: Establish QUIC / TLS 1.3 Transport to Windows PC
     public func startQUICConnection(host: String, port: UInt16, pin: String? = nil) {
         self.pendingPinCode = pin
+        self.connectionMode = "Wi-Fi" // Explicitly clear any stale USB transport mode when initiating QUIC
         
         log("[UI] CONNECT BUTTON PRESSED")
         log("[UI] IP = \(host)")
         log("[UI] PORT = \(port)")
-        log("[UI] PIN = \(pin ?? "")")
+        log("[UI] PIN LENGTH = \(pin?.count ?? 0)")
         
-        log("[QUIC] CREATING NWConnection")
-        log("[QUIC] HOST = \(host)")
-        log("[QUIC] PORT = \(port)")
+        log("[QUIC] Creating NWProtocolQUIC.Options")
+        guard let nwPort = NWEndpoint.Port(rawValue: port) else {
+            log("[QUIC] ERROR = Invalid Port \(port)")
+            return
+        }
+        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: nwPort)
         
-        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
-        
-        // Explicitly construct NWProtocolQUIC.Options with ALPN
-        log("[QUIC] Creating NWProtocolQUIC.Options with ALPN [nexuslink-v2]")
+        log("[QUIC] Configuring ALPN")
         let quicOptions = NWProtocolQUIC.Options(alpn: ["nexuslink-v2"])
+        
+        log("[QUIC] Configuring datagrams")
         quicOptions.isDatagram = true
         quicOptions.maxDatagramFrameSize = 65536
         
-        // Configure custom self-signed TLS verification
+        log("[TLS] Configuring verification callback")
         let securityOptions = quicOptions.securityProtocolOptions
+        
+        // Execute verify block on a dedicated background queue (tlsQueue) to avoid deadlocking the main queue
         sec_protocol_options_set_verify_block(securityOptions, { [weak self] (sec_protocol_metadata, sec_trust, completionHandler) in
             print("[TLS] VERIFY CALLBACK CALLED")
-            print("[QUIC] TLS verification bypass: Trusting self-signed local certificate")
             Task { @MainActor in
                 self?.log("[TLS] VERIFY CALLBACK CALLED")
                 self?.log("[QUIC] TLS verification bypass: Trusting self-signed local certificate")
             }
             completionHandler(true)
-        }, .main)
+        }, tlsQueue)
         log("[QUIC] TLS verification bypass handler attached successfully")
         
-        // Initialize NWParameters using our explicit QUIC options
+        log("[QUIC] Creating NWParameters")
         let parameters = NWParameters(quic: quicOptions)
-        log("[QUIC] NWParameters CREATED with explicit options")
         
+        log("[QUIC] Creating NWConnection")
         nwConnection = NWConnection(to: endpoint, using: parameters)
-        log("[QUIC] NWConnection CREATED")
         
+        log("[QUIC] Installing state handler")
         nwConnection?.stateUpdateHandler = { [weak self] state in
             guard let self = self else { return }
             
@@ -171,25 +179,31 @@ public class NexusLinkIOSEngine: ObservableObject {
             }
         }
         
-        log("[QUIC] START CALLED")
-        nwConnection?.start(queue: .global(qos: .userInitiated))
+        log("[QUIC] Installing datagram handler")
+        
+        log("[QUIC] Calling start()")
+        // Start connection on connectionQueue to ensure thread safety and avoid race conditions
+        nwConnection?.start(queue: connectionQueue)
     }
     
     private func listenForMessages() {
         guard let connection = nwConnection else { return }
         connection.receiveMessage { [weak self] (content, context, isComplete, error) in
+            guard let self = self else { return }
             if let error = error {
                 print("[iOS QUIC] Receive error: \(error)")
                 return
             }
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                if let data = content, !data.isEmpty {
+            
+            if let data = content, !data.isEmpty {
+                Task { @MainActor in
                     self.handleIncomingData(data)
                 }
-                if connection.state == .ready {
-                    self.listenForMessages()
-                }
+            }
+            
+            // Re-register listener immediately on the connection queue to avoid missing messages
+            if connection.state == .ready {
+                self.listenForMessages()
             }
         }
     }

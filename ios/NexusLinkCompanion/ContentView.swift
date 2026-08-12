@@ -192,25 +192,48 @@ struct ContentView: View {
     }
 
     private func parseAndConnectQR() {
+        engine.log("[UI] parseAndConnectQR CALLED")
         guard let url = URL(string: qrPayloadInput),
               let components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
-            print("[PAIRING] Invalid QR Code payload format")
+            engine.log("[PAIRING] ERROR: Invalid QR Code payload format")
             return
         }
         
         let host = components.queryItems?.first(where: { $0.name == "host" })?.value ?? ""
         let portStr = components.queryItems?.first(where: { $0.name == "port" })?.value ?? "8492"
         let pin = components.queryItems?.first(where: { $0.name == "pin" })?.value ?? ""
+        let version = components.queryItems?.first(where: { $0.name == "v" })?.value ?? ""
+        
+        engine.log("[UI] DECODING QR PAYLOAD:")
+        engine.log("[UI] - HOST = \(host)")
+        engine.log("[UI] - PORT = \(portStr)")
+        engine.log("[UI] - PIN = \(pin)")
+        engine.log("[UI] - VERSION = \(version)")
+        engine.log("[UI] - EXPECTED ALPN = nexuslink-v2")
         
         let port = UInt16(portStr) ?? 8492
         
-        if !host.isEmpty && !pin.isEmpty {
-            self.manualHostInput = host
-            self.pinInput = pin
-            self.manualPortInput = portStr
-            engine.startQUICConnection(host: host, port: port, pin: pin)
-        } else {
-            print("[PAIRING] QR payload missing vital parameters (host, pin)")
+        // Strict verification of QR payload schema & parameters
+        guard version == "1" else {
+            engine.log("[PAIRING] ERROR: Unsupported protocol version '\(version)'. Expected version 1.")
+            return
         }
+        
+        guard !host.isEmpty else {
+            engine.log("[PAIRING] ERROR: Missing IP/hostname in QR payload")
+            return
+        }
+        
+        guard pin.count == 6 else {
+            engine.log("[PAIRING] ERROR: Invalid PIN length '\(pin.count)'. Expected 6-digit PIN.")
+            return
+        }
+        
+        self.manualHostInput = host
+        self.pinInput = pin
+        self.manualPortInput = portStr
+        
+        engine.log("[PAIRING] QR payload validated successfully. Connecting...")
+        engine.startQUICConnection(host: host, port: port, pin: pin)
     }
 }

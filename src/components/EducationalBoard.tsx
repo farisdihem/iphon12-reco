@@ -139,19 +139,19 @@ export const EducationalBoard: React.FC<{ lang: 'en' | 'ar' }> = ({ lang }) => {
   };
 
   const handleUndo = () => {
-    if (undoStack.length === 0) return;
+    if (!undoStack || undoStack.length === 0) return;
     const previous = undoStack[undoStack.length - 1];
-    setUndoStack(prev => prev.slice(0, -1));
-    setRedoStack(prev => [...prev, JSON.parse(JSON.stringify(elements))]);
+    setUndoStack(prev => (prev || []).slice(0, -1));
+    setRedoStack(prev => [...(prev || []), JSON.parse(JSON.stringify(elements || []))]);
     setElements(previous);
     persistToDB(previous);
   };
 
   const handleRedo = () => {
-    if (redoStack.length === 0) return;
+    if (!redoStack || redoStack.length === 0) return;
     const next = redoStack[redoStack.length - 1];
-    setRedoStack(prev => prev.slice(0, -1));
-    setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(elements))]);
+    setRedoStack(prev => (prev || []).slice(0, -1));
+    setUndoStack(prev => [...(prev || []), JSON.parse(JSON.stringify(elements || []))]);
     setElements(next);
     persistToDB(next);
   };
@@ -172,13 +172,14 @@ export const EducationalBoard: React.FC<{ lang: 'en' | 'ar' }> = ({ lang }) => {
       h = 120;
     }
 
+    const elemCount = elements?.length || 0;
     const newElement: LocalElement = {
       id: newId,
       type,
       props: defaultProps,
       style: {
-        left: 80 + (elements.length * 30) % 200,
-        top: 80 + (elements.length * 20) % 150,
+        left: 80 + (elemCount * 30) % 200,
+        top: 80 + (elemCount * 20) % 150,
         width: w,
         height: h,
         transform: '',
@@ -527,7 +528,7 @@ export const EducationalBoard: React.FC<{ lang: 'en' | 'ar' }> = ({ lang }) => {
           </div>
 
           {/* Empty state overlay inside board */}
-          {elements.length === 0 && (
+          {(!elements || elements.length === 0) && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center pointer-events-none">
               <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
                 <Beaker className="w-8 h-8" />
@@ -558,7 +559,7 @@ export const EducationalBoard: React.FC<{ lang: 'en' | 'ar' }> = ({ lang }) => {
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleUndo(); }}
-                disabled={undoStack.length === 0}
+                disabled={!undoStack || undoStack.length === 0}
                 className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 disabled:opacity-40 transition-all shadow-md"
                 title={isAr ? 'تراجع' : 'Undo'}
               >
@@ -567,7 +568,7 @@ export const EducationalBoard: React.FC<{ lang: 'en' | 'ar' }> = ({ lang }) => {
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleRedo(); }}
-                disabled={redoStack.length === 0}
+                disabled={!redoStack || redoStack.length === 0}
                 className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 disabled:opacity-40 transition-all shadow-md"
                 title={isAr ? 'إعادة' : 'Redo'}
               >
@@ -803,7 +804,7 @@ export const EducationalBoard: React.FC<{ lang: 'en' | 'ar' }> = ({ lang }) => {
             </div>
 
             <div className="h-28 overflow-y-auto bg-slate-950 p-2.5 rounded-xl border border-slate-800 font-mono text-[9px] text-slate-400 space-y-1 scrollbar-thin">
-              {testLogs.length > 0 ? (
+              {testLogs && testLogs.length > 0 ? (
                 testLogs.map((log, idx) => (
                   <div key={idx} className={log.includes('FAILED') ? 'text-rose-400' : log.includes('PASSED') ? 'text-emerald-400' : ''}>
                     {log}

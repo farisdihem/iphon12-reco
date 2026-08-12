@@ -31,16 +31,18 @@ export const TelemetryTab: React.FC<TelemetryTabProps> = ({
   telemetryData,
   onTriggerStressTest,
 }) => {
-  const latest = telemetryData[telemetryData.length - 1] || {
-    audioLatencyMs: 12,
-    videoLatencyMs: 25,
-    jitterMs: 1.4,
-    packetLossPercent: 0.02,
-    throughputMbps: 145,
-    fps: 60,
-    cpuPercent: 12,
-    gpuPercent: 18,
-  };
+  const latest = (telemetryData && Array.isArray(telemetryData) && telemetryData.length > 0)
+    ? telemetryData[telemetryData.length - 1]
+    : {
+        audioLatencyMs: 12,
+        videoLatencyMs: 25,
+        jitterMs: 1.4,
+        packetLossPercent: 0.02,
+        throughputMbps: 145,
+        fps: 60,
+        cpuPercent: 12,
+        gpuPercent: 18,
+      };
 
   return (
     <div className="space-y-6 pb-8">

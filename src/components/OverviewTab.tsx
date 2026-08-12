@@ -151,8 +151,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-            {allDevices.map((dev) => {
-              const isCurrent = dev.id === activeDevice.id;
+            {(allDevices || []).map((dev) => {
+              const isCurrent = dev.id === activeDevice?.id;
               return (
                 <div
                   key={dev.id}

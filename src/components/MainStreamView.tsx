@@ -102,16 +102,16 @@ export const MainStreamView: React.FC<MainStreamViewProps> = ({
 
         {/* Change or Add Device */}
         <div className="flex items-center space-x-2 rtl:space-x-reverse w-full sm:w-auto justify-end">
-          {allDevices.length > 1 && (
+          {allDevices && allDevices.length > 1 && (
             <select
-              value={activeDevice.id}
+              value={activeDevice?.id || ''}
               onChange={(e) => {
                 const dev = allDevices.find(d => d.id === e.target.value);
                 if (dev) onSelectDevice(dev);
               }}
               className="px-3 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold focus:outline-none focus:border-blue-500"
             >
-              {allDevices.map(dev => (
+              {(allDevices || []).map(dev => (
                 <option key={dev.id} value={dev.id}>
                   {dev.name} ({dev.isConnected ? 'Online' : 'Offline'})
                 </option>

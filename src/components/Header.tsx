@@ -6,7 +6,6 @@ import {
   Battery, 
   BatteryCharging, 
   Radio, 
-  Usb, 
   Terminal, 
   Volume2, 
   Settings,

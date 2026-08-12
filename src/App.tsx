@@ -36,7 +36,9 @@ export default function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       setTelemetryData((prev) => {
+        if (!prev || !Array.isArray(prev) || prev.length === 0) return prev || [];
         const last = prev[prev.length - 1];
+        if (!last) return prev;
         const nextSec = parseInt(last.time) + 2;
         const newPoint: TelemetryPoint = {
           time: `${nextSec}s`,
@@ -110,7 +112,9 @@ export default function App() {
 
   const handleTriggerStressTest = () => {
     setTelemetryData(prev => {
+      if (!prev || !Array.isArray(prev) || prev.length === 0) return prev || [];
       const last = prev[prev.length - 1];
+      if (!last) return prev;
       const spikePoint: TelemetryPoint = {
         ...last,
         time: `${parseInt(last.time) + 2}s (Spike)`,
@@ -125,7 +129,9 @@ export default function App() {
 
     setTimeout(() => {
       setTelemetryData(prev => {
+        if (!prev || !Array.isArray(prev) || prev.length === 0) return prev || [];
         const last = prev[prev.length - 1];
+        if (!last) return prev;
         const recoveredPoint: TelemetryPoint = {
           ...last,
           time: `${parseInt(last.time) + 2}s (Recovered)`,
@@ -141,7 +147,7 @@ export default function App() {
   };
 
   const handleAddNewDevice = (newDev: DeviceInfo) => {
-    setAllDevices(prev => [newDev, ...prev]);
+    setAllDevices(prev => [newDev, ...(prev || [])]);
     setActiveDevice(newDev);
   };
 
@@ -164,7 +170,7 @@ export default function App() {
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
         <MainStreamView
           activeDevice={activeDevice}
-          
+          allDevices={allDevices}
           onSelectDevice={setActiveDevice}
           audioSettings={audioSettings}
           videoSettings={videoSettings}

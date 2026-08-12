@@ -41,6 +41,8 @@
     "@rollup/rollup-win32-ia32-msvc": "^4.22.4",
     "@rollup/rollup-win32-arm64-msvc": "^4.22.4",
     "lightningcss-win32-x64-msvc": "1.32.0",
-    "lightningcss-win32-arm64-msvc": "1.32.0"
+    "lightningcss-win32-arm64-msvc": "1.32.0",
+    "@tailwindcss/oxide-win32-x64-msvc": "4.3.3",
+    "@tailwindcss/oxide-win32-arm64-msvc": "4.3.3"
   }
 }

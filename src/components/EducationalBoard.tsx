@@ -1,823 +1,950 @@
 // =========================================================================
-// Science Whiteboard & Interactive Educational Lab Board
+// Science Whiteboard & Interactive Physics/Chemistry Educational Board
 // File: src/components/EducationalBoard.tsx
 // =========================================================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Plus, 
+  MoveUpRight, 
+  Circle, 
+  Triangle, 
+  Square, 
+  Type, 
+  Calculator, 
+  StickyNote, 
+  Image as ImageIcon, 
+  Atom, 
+  FlaskConical, 
+  Microscope, 
+  Grid as GridIcon, 
+  Compass, 
   Trash2, 
-  RotateCcw, 
+  Plus, 
+  ChevronLeft, 
+  ChevronRight, 
+  X, 
+  RotateCw, 
+  Sliders, 
+  Check, 
+  ChevronDown, 
   Play, 
   Pause, 
-  Check, 
-  Sliders, 
-  FileDown, 
-  Beaker, 
-  Undo2, 
-  Redo2, 
-  RefreshCw,
-  Info
+  Download,
+  Zap,
+  Gauge,
+  Activity,
+  Lightbulb,
+  ToggleLeft
 } from 'lucide-react';
-import { 
-  EduElementType, 
-  DEFAULT_PROPS, 
-  ForceVectorProps, 
-  ConvexLensProps, 
-  BallProps,
-  renderForceVectorSVG, 
-  renderConvexLensSVG, 
-  renderBallSVG,
-  runEducationalIntegrationTests 
-} from '../utils/eduElements';
-import { 
-  savePageState, 
-  loadPageState, 
-  EduElementState 
-} from '../utils/indexedDB';
 
-interface LocalElement {
+export type ElementType = 
+  | 'mass-block'
+  | 'velocity-car'
+  | 'force-vector'
+  | 'weight-vector'
+  | 'dimension-line'
+  | 'convex-lens'
+  | 'mirror'
+  | 'battery'
+  | 'resistor'
+  | 'switch'
+  | 'lamp'
+  | 'ammeter'
+  | 'voltmeter'
+  | 'flask'
+  | 'shape-circle'
+  | 'shape-triangle'
+  | 'shape-rectangle'
+  | 'text-label'
+  | 'note';
+
+export interface BoardElement {
   id: string;
-  type: EduElementType;
-  props: string; // JSON string
-  style: {
-    left: number; // in pixels relative to whiteboard
-    top: number; // in pixels relative to whiteboard
-    width: number;
-    height: number;
-    transform: string; // rotation etc.
-  };
+  type: ElementType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  label: string;
+  value: number;
+  unit: string;
+  color: string;
+  extraProps?: Record<string, any>;
 }
 
-export const EducationalBoard: React.FC<{ lang: 'en' | 'ar' }> = ({ lang }) => {
+const INITIAL_BOARD_ELEMENTS: BoardElement[] = [
+  {
+    id: 'elem-mass-1',
+    type: 'mass-block',
+    x: 160,
+    y: 280,
+    width: 140,
+    height: 80,
+    rotation: 0,
+    label: 'm',
+    value: 5,
+    unit: 'kg',
+    color: '#3b82f6',
+  },
+  {
+    id: 'elem-weight-1',
+    type: 'weight-vector',
+    x: 205,
+    y: 420,
+    width: 20,
+    height: 140,
+    rotation: 0,
+    label: 'W',
+    value: 49,
+    unit: 'N',
+    color: '#f97316',
+  },
+  {
+    id: 'elem-dim-1',
+    type: 'dimension-line',
+    x: 310,
+    y: 535,
+    width: 130,
+    height: 30,
+    rotation: 0,
+    label: 'd',
+    value: 10,
+    unit: 'm',
+    color: '#475569',
+  },
+  {
+    id: 'elem-car-1',
+    type: 'velocity-car',
+    x: 410,
+    y: 230,
+    width: 90,
+    height: 45,
+    rotation: 0,
+    label: 'v',
+    value: 15,
+    unit: 'm/s',
+    color: '#22c55e',
+  },
+  {
+    id: 'elem-force-1',
+    type: 'force-vector',
+    x: 460,
+    y: 460,
+    width: 120,
+    height: 30,
+    rotation: 0,
+    label: 'F',
+    value: 9.8,
+    unit: 'N',
+    color: '#ef4444',
+    extraProps: { acceleration: 1.96 }
+  },
+  {
+    id: 'elem-mass-2',
+    type: 'mass-block',
+    x: 530,
+    y: 195,
+    width: 110,
+    height: 60,
+    rotation: 0,
+    label: 'm',
+    value: 5,
+    unit: 'kg',
+    color: '#3b82f6',
+  },
+  {
+    id: 'elem-lens-1',
+    type: 'convex-lens',
+    x: 700,
+    y: 110,
+    width: 80,
+    height: 160,
+    rotation: 0,
+    label: 'عدسة',
+    value: 10,
+    unit: 'cm',
+    color: '#2563eb',
+    extraProps: { f1: 'F1', f2: 'F2' }
+  },
+  {
+    id: 'elem-mirror-1',
+    type: 'mirror',
+    x: 810,
+    y: 120,
+    width: 10,
+    height: 150,
+    rotation: 0,
+    label: 'مرآة',
+    value: 0,
+    unit: '',
+    color: '#38bdf8',
+  },
+  {
+    id: 'elem-battery-1',
+    type: 'battery',
+    x: 620,
+    y: 295,
+    width: 80,
+    height: 50,
+    rotation: 0,
+    label: 'E',
+    value: 12,
+    unit: 'V',
+    color: '#ef4444',
+  },
+  {
+    id: 'elem-resistor-1',
+    type: 'resistor',
+    x: 620,
+    y: 430,
+    width: 90,
+    height: 35,
+    rotation: 0,
+    label: 'R',
+    value: 10,
+    unit: 'Ω',
+    color: '#f97316',
+  },
+  {
+    id: 'elem-switch-1',
+    type: 'switch',
+    x: 625,
+    y: 535,
+    width: 90,
+    height: 40,
+    rotation: 0,
+    label: 'K (مفتوح)',
+    value: 0,
+    unit: '',
+    color: '#334155',
+  },
+  {
+    id: 'elem-lamp-1',
+    type: 'lamp',
+    x: 635,
+    y: 650,
+    width: 70,
+    height: 70,
+    rotation: 0,
+    label: 'L',
+    value: 60,
+    unit: 'W',
+    color: '#eab308',
+  },
+  {
+    id: 'elem-ammeter-1',
+    type: 'ammeter',
+    x: 755,
+    y: 360,
+    width: 55,
+    height: 55,
+    rotation: 0,
+    label: 'I',
+    value: 2,
+    unit: 'A',
+    color: '#0284c7',
+  },
+  {
+    id: 'elem-voltmeter-1',
+    type: 'voltmeter',
+    x: 755,
+    y: 465,
+    width: 55,
+    height: 55,
+    rotation: 0,
+    label: 'U',
+    value: 12,
+    unit: 'V',
+    color: '#9333ea',
+  },
+];
+
+export const EducationalBoard: React.FC<{ lang?: 'en' | 'ar' }> = ({ lang = 'ar' }) => {
   const isAr = lang === 'ar';
-  
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // States
+  const [elements, setElements] = useState<BoardElement[]>(INITIAL_BOARD_ELEMENTS);
+  const [selectedId, setSelectedId] = useState<string | null>('elem-mass-1');
   
-  // Element states
-  const [elements, setElements] = useState<LocalElement[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  
-  // Physics simulation
-  const [isSimulating, setIsSimulating] = useState(false);
-  const physicsTimerRef = useRef<number | null>(null);
+  // Board customization settings
+  const [showGrid, setShowGrid] = useState(true);
+  const [showAxes, setShowAxes] = useState(false);
+  const [selectedColor, setSelectedColor] = useState('#2563eb');
+  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [activePage, setActivePage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Undo / Redo stacks
-  const [undoStack, setUndoStack] = useState<LocalElement[][]>([]);
-  const [redoStack, setRedoStack] = useState<LocalElement[][]>([]);
+  // Dropdown menus
+  const [openPhysicsMenu, setOpenPhysicsMenu] = useState(false);
+  const [openChemMenu, setOpenChemMenu] = useState(false);
+  const [openScienceMenu, setOpenScienceMenu] = useState(false);
+  const [showAdvancedModalOptions, setShowAdvancedModalOptions] = useState(false);
 
-  // Testing console
-  const [testLogs, setTestLogs] = useState<string[]>([]);
-  const [testStatus, setTestStatus] = useState<'idle' | 'running' | 'passed' | 'failed'>('idle');
-
-  // Dragging states
+  // Dragging state
   const [dragState, setDragState] = useState<{
-    elemId: string;
+    id: string;
     startX: number;
     startY: number;
-    startLeft: number;
-    startTop: number;
+    elemX: number;
+    elemY: number;
   } | null>(null);
 
-  // Load from IndexedDB on startup
-  useEffect(() => {
-    const initLoad = async () => {
-      const saved = await loadPageState('primary-science-board');
-      if (saved && saved.elements) {
-        // Map saved IndexedDB elements (which have string styles) back to local numeric-style formats
-        const mapped: LocalElement[] = saved.elements.map(el => {
-          const left = parseFloat(el.style.left) || 100;
-          const top = parseFloat(el.style.top) || 100;
-          const width = parseFloat(el.style.width) || 200;
-          const height = parseFloat(el.style.height) || 200;
-          return {
-            id: el.id,
-            type: el.type as EduElementType,
-            props: el.props,
-            style: {
-              left,
-              top,
-              width,
-              height,
-              transform: el.style.transform || '',
-            }
-          };
-        });
-        setElements(mapped);
-      }
-    };
-    initLoad();
-  }, []);
+  const selectedElement = elements.find(el => el.id === selectedId);
 
-  // Save current state to IndexedDB helper
-  const persistToDB = async (currentElems: LocalElement[]) => {
-    const dbElems: EduElementState[] = currentElems.map(el => ({
-      id: el.id,
-      type: el.type,
-      props: el.props,
-      schemaVersion: '1.0.0',
-      style: {
-        left: `${el.style.left}px`,
-        top: `${el.style.top}px`,
-        width: `${el.style.width}px`,
-        height: `${el.style.height}px`,
-        transform: el.style.transform,
-      }
-    }));
-    await savePageState({
-      pageId: 'primary-science-board',
-      elements: dbElems,
-      updatedAt: Date.now()
-    });
-  };
-
-  // saveH(): Saves current layout state onto undo stack
-  const saveH = (stateToSave: LocalElement[]) => {
-    setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(elements))]);
-    setRedoStack([]); // Clear redo stack on new action
-    persistToDB(stateToSave);
-  };
-
-  const handleUndo = () => {
-    if (!undoStack || undoStack.length === 0) return;
-    const previous = undoStack[undoStack.length - 1];
-    setUndoStack(prev => (prev || []).slice(0, -1));
-    setRedoStack(prev => [...(prev || []), JSON.parse(JSON.stringify(elements || []))]);
-    setElements(previous);
-    persistToDB(previous);
-  };
-
-  const handleRedo = () => {
-    if (!redoStack || redoStack.length === 0) return;
-    const next = redoStack[redoStack.length - 1];
-    setRedoStack(prev => (prev || []).slice(0, -1));
-    setUndoStack(prev => [...(prev || []), JSON.parse(JSON.stringify(elements || []))]);
-    setElements(next);
-    persistToDB(next);
-  };
-
-  // Add Element to whiteboard
-  const handleAddElement = (type: EduElementType) => {
-    const newId = `edu-elem-${Date.now()}`;
-    const defaultProps = JSON.stringify(DEFAULT_PROPS[type]);
-    
-    // Default sizes per type
-    let w = 200;
-    let h = 200;
-    if (type === 'physics.convex-lens') {
-      w = 400;
-      h = 240;
-    } else if (type === 'physics.ball') {
-      w = 120;
-      h = 120;
-    }
-
-    const elemCount = elements?.length || 0;
-    const newElement: LocalElement = {
-      id: newId,
-      type,
-      props: defaultProps,
-      style: {
-        left: 80 + (elemCount * 30) % 200,
-        top: 80 + (elemCount * 20) % 150,
-        width: w,
-        height: h,
-        transform: '',
-      }
-    };
-
-    const nextElems = [...elements, newElement];
-    saveH(nextElems);
-    setElements(nextElems);
-    setSelectedId(newId);
-  };
-
-  // Delete Element
-  const handleDeleteElement = (id: string) => {
-    const nextElems = elements.filter(el => el.id !== id);
-    saveH(nextElems);
-    setElements(nextElems);
-    if (selectedId === id) setSelectedId(null);
-  };
-
-  // Update properties of selected element
-  const handleUpdateProps = (id: string, updatedPropsObj: any) => {
-    const nextElems = elements.map(el => {
-      if (el.id === id) {
-        const parsed = JSON.parse(el.props);
-        const merged = { ...parsed, ...updatedPropsObj };
-        return {
-          ...el,
-          props: JSON.stringify(merged)
-        };
-      }
-      return el;
-    });
-    setElements(nextElems);
-    persistToDB(nextElems);
-  };
-
-  // Handle Dragging / Movement Mouse Events
-  const handleElementMouseDown = (e: React.MouseEvent, elem: LocalElement) => {
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    setSelectedId(elem.id);
-    
+    setSelectedId(id);
+    const elem = elements.find(el => el.id === id);
+    if (!elem) return;
+
     setDragState({
-      elemId: elem.id,
+      id,
       startX: e.clientX,
       startY: e.clientY,
-      startLeft: elem.style.left,
-      startTop: elem.style.top,
+      elemX: elem.x,
+      elemY: elem.y,
     });
   };
 
-  const handleGlobalMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (!dragState) return;
-
     const dx = e.clientX - dragState.startX;
     const dy = e.clientY - dragState.startY;
 
-    // Apply move bounds
-    const container = containerRef.current;
-    const containerW = container ? container.clientWidth : 800;
-    const containerH = container ? container.clientHeight : 500;
-
-    const el = elements.find(item => item.id === dragState.elemId);
-    if (!el) return;
-
-    const targetLeft = Math.max(0, Math.min(containerW - el.style.width, dragState.startLeft + dx));
-    const targetTop = Math.max(0, Math.min(containerH - el.style.height, dragState.startTop + dy));
-
-    setElements(prev => prev.map(item => {
-      if (item.id === dragState.elemId) {
+    setElements(prev => prev.map(el => {
+      if (el.id === dragState.id) {
         return {
-          ...item,
-          style: {
-            ...item.style,
-            left: targetLeft,
-            top: targetTop
-          }
+          ...el,
+          x: Math.max(20, dragState.elemX + dx),
+          y: Math.max(20, dragState.elemY + dy)
         };
       }
-      return item;
+      return el;
     }));
   };
 
-  const handleGlobalMouseUp = () => {
-    if (dragState) {
-      saveH(elements);
-      setDragState(null);
-    }
+  const handleMouseUp = () => {
+    setDragState(null);
   };
 
   useEffect(() => {
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    window.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
     return () => {
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
-      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [dragState, elements]);
+  }, [dragState]);
 
-  // Run Real Kinematics Physics Loop
-  useEffect(() => {
-    if (isSimulating) {
-      const container = containerRef.current;
-      const cW = container ? container.clientWidth : 750;
-      const cH = container ? container.clientHeight : 450;
+  // Add Element Helper
+  const addElement = (type: ElementType, customLabel?: string, defaultVal = 1) => {
+    const newId = `elem-${Date.now()}`;
+    const x = 300 + Math.random() * 100;
+    const y = 200 + Math.random() * 100;
 
-      const runTick = () => {
-        setElements(prev => prev.map(el => {
-          if (el.type === 'physics.ball') {
-            const propsObj: BallProps = JSON.parse(el.props);
-            
-            let x = el.style.left;
-            let y = el.style.top;
-            let vx = propsObj.vx;
-            let vy = propsObj.vy;
-            const r = propsObj.radius;
-            const gravity = propsObj.gravity;
-            const restitution = propsObj.restitution;
-
-            // Apply equations
-            x += vx;
-            y += vy;
-            vy += gravity;
-
-            // Wall collisions
-            if (x < 0) {
-              x = 0;
-              vx = -vx * restitution;
-            } else if (x + el.style.width > cW) {
-              x = cW - el.style.width;
-              vx = -vx * restitution;
-            }
-
-            if (y < 0) {
-              y = 0;
-              vy = -vy * restitution;
-            } else if (y + el.style.height > cH) {
-              y = cH - el.style.height;
-              vy = -vy * restitution;
-              // Friction on floor contact
-              vx *= 0.98;
-            }
-
-            // Sync updated velocity back inside props
-            const updatedProps = { ...propsObj, vx, vy };
-            
-            return {
-              ...el,
-              props: JSON.stringify(updatedProps),
-              style: {
-                ...el.style,
-                left: x,
-                top: y
-              }
-            };
-          }
-          return el;
-        }));
-
-        physicsTimerRef.current = requestAnimationFrame(runTick);
-      };
-
-      physicsTimerRef.current = requestAnimationFrame(runTick);
-    } else {
-      if (physicsTimerRef.current) {
-        cancelAnimationFrame(physicsTimerRef.current);
-      }
-    }
-
-    return () => {
-      if (physicsTimerRef.current) cancelAnimationFrame(physicsTimerRef.current);
+    const newElem: BoardElement = {
+      id: newId,
+      type,
+      x,
+      y,
+      width: type === 'mass-block' ? 130 : type === 'convex-lens' ? 80 : 100,
+      height: type === 'mass-block' ? 70 : type === 'convex-lens' ? 160 : 60,
+      rotation: 0,
+      label: customLabel || 'عنصر جديد',
+      value: defaultVal,
+      unit: type === 'mass-block' ? 'kg' : type === 'battery' ? 'V' : 'N',
+      color: selectedColor,
     };
-  }, [isSimulating]);
 
-  // SVG Export combining background and overlays
-  const handleExportCanvas = () => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-
-    // Construct a giant combined SVG representing the entire whiteboard
-    let compositeSvg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="background:#020617;">`;
-    
-    // Add grid lines
-    compositeSvg += `<path d="M 0 0 L 0 0" stroke="#334155" stroke-opacity="0.1" />`;
-    for (let x = 40; x < w; x += 40) {
-      compositeSvg += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="#1e293b" stroke-width="1" />`;
-    }
-    for (let y = 40; y < h; y += 40) {
-      compositeSvg += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="#1e293b" stroke-width="1" />`;
-    }
-
-    // Add elements
-    elements.forEach(el => {
-      let elementSvgContent = '';
-      const parsedProps = JSON.parse(el.props);
-
-      if (el.type === 'physics.force-vector') {
-        elementSvgContent = renderForceVectorSVG(parsedProps);
-      } else if (el.type === 'physics.convex-lens') {
-        elementSvgContent = renderConvexLensSVG(parsedProps);
-      } else if (el.type === 'physics.ball') {
-        elementSvgContent = renderBallSVG(parsedProps);
-      }
-
-      // Strip potential redundant XML declarations and wrap with translation coordinates
-      const cleanSvg = elementSvgContent
-        .replace(/<\?xml.*\?>/i, '')
-        .replace(/<!DOCTYPE.*?>/i, '');
-
-      compositeSvg += `<g transform="translate(${el.style.left}, ${el.style.top})">${cleanSvg}</g>`;
-    });
-
-    compositeSvg += `</svg>`;
-
-    // Download combined SVG file offline
-    const blob = new Blob([compositeSvg], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `whiteboard-lab-export-${Date.now()}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setElements(prev => [...prev, newElem]);
+    setSelectedId(newId);
+    setOpenPhysicsMenu(false);
+    setOpenChemMenu(false);
+    setOpenScienceMenu(false);
   };
 
-  // Run unit tests
-  const handleRunTests = () => {
-    setTestStatus('running');
-    setTestLogs(['Initialising suite...']);
-    
-    setTimeout(() => {
-      const result = runEducationalIntegrationTests();
-      setTestLogs(result.logs);
-      setTestStatus(result.passed ? 'passed' : 'failed');
-    }, 800);
+  // Delete Element
+  const deleteSelected = () => {
+    if (!selectedId) return;
+    setElements(prev => prev.filter(el => el.id !== selectedId));
+    setSelectedId(null);
   };
 
-  // Render element SVG procedurally
-  const getRenderedElementMarkup = (el: LocalElement) => {
-    const parsedProps = JSON.parse(el.props);
-    if (el.type === 'physics.force-vector') {
-      return renderForceVectorSVG(parsedProps);
-    } else if (el.type === 'physics.convex-lens') {
-      return renderConvexLensSVG(parsedProps);
-    } else if (el.type === 'physics.ball') {
-      return renderBallSVG(parsedProps);
-    }
-    return '';
+  // Clear Canvas
+  const clearCanvas = () => {
+    setElements([]);
+    setSelectedId(null);
   };
 
-  // Selected element properties definition
-  const selectedElem = elements.find(el => el.id === selectedId);
-  const selectedProps = selectedElem ? JSON.parse(selectedElem.props) : null;
+  // Update selected element property
+  const updateSelectedProp = (key: keyof BoardElement, val: any) => {
+    if (!selectedId) return;
+    setElements(prev => prev.map(el => el.id === selectedId ? { ...el, [key]: val } : el));
+  };
 
   return (
-    <div className="w-full flex flex-col xl:flex-row gap-6 animate-fade-in text-gray-100">
+    <div className="relative w-full h-[85vh] min-h-[680px] bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden font-sans select-none dir-rtl">
       
-      {/* LEFT AREA: Lab Controls & Science Whiteboard Stage */}
-      <div className="flex-1 flex flex-col space-y-4">
-        
-        {/* Whiteboard Toolbar Header */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
-          <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-              <Beaker className="w-5 h-5" />
+      {/* 1. Main Canvas Area with Subtitle Grid */}
+      <div 
+        ref={containerRef}
+        className="absolute inset-0 w-full h-full bg-[#fafbfc] overflow-auto cursor-crosshair"
+        onClick={() => {
+          setSelectedId(null);
+          setOpenPhysicsMenu(false);
+          setOpenChemMenu(false);
+          setOpenScienceMenu(false);
+        }}
+        style={showGrid ? {
+          backgroundImage: 'radial-gradient(#cbd5e1 1.2px, transparent 1.2px)',
+          backgroundSize: '24px 24px'
+        } : {}}
+      >
+        {/* Optional X & Y Axes Overlay */}
+        {showAxes && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/2 left-0 right-0 border-b-2 border-dashed border-blue-400/50" />
+            <div className="absolute left-1/2 top-0 bottom-0 border-r-2 border-dashed border-blue-400/50" />
+            <span className="absolute top-1/2 left-4 text-xs font-mono font-bold text-blue-500 -translate-y-6">X-Axis</span>
+            <span className="absolute top-4 left-1/2 text-xs font-mono font-bold text-blue-500 translate-x-3">Y-Axis</span>
+          </div>
+        )}
+
+        {/* Render Canvas Elements */}
+        {elements.map(el => {
+          const isSelected = selectedId === el.id;
+
+          return (
+            <div
+              key={el.id}
+              onMouseDown={(e) => handleMouseDown(e, el.id)}
+              onClick={(e) => { e.stopPropagation(); setSelectedId(el.id); }}
+              className={`absolute cursor-move transition-shadow ${
+                isSelected ? 'ring-2 ring-blue-500 ring-dashed ring-offset-2 rounded-xl' : ''
+              }`}
+              style={{
+                left: `${el.x}px`,
+                top: `${el.y}px`,
+                transform: `rotate(${el.rotation}deg)`,
+              }}
+            >
+              {/* Selection Control Handles (Rotate & Resize & Delete) */}
+              {isSelected && (
+                <>
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition-transform">
+                    <RotateCw className="w-3.5 h-3.5" />
+                  </div>
+                  <div 
+                    onClick={(e) => { e.stopPropagation(); deleteSelected(); }}
+                    className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition-transform z-20"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shadow-md cursor-se-resize">
+                    <MoveUpRight className="w-3 h-3" />
+                  </div>
+                </>
+              )}
+
+              {/* RENDER SPECIFIC PHYSICS & CIRCUIT SYMBOLS */}
+              
+              {/* 1. Physical Mass Block */}
+              {el.type === 'mass-block' && (
+                <div className="flex flex-col items-center">
+                  <div className="w-36 h-20 rounded-2xl bg-blue-100 border-2 border-blue-500 flex items-center justify-center shadow-md">
+                    <span className="text-xl font-bold text-blue-800 font-serif">{el.label}</span>
+                  </div>
+                  <span className="mt-1.5 text-xs font-bold text-slate-700 bg-white/90 px-2 py-0.5 rounded-full border border-slate-200 shadow-sm">
+                    {el.label} = {el.value} {el.unit}
+                  </span>
+                </div>
+              )}
+
+              {/* 2. Velocity Car */}
+              {el.type === 'velocity-car' && (
+                <div className="flex flex-col items-center">
+                  <div className="relative px-3 py-1 bg-emerald-500 border-2 border-emerald-600 rounded-lg text-white font-mono text-xs font-bold flex items-center justify-between gap-3 shadow-md">
+                    <div className="w-2.5 h-2.5 rounded-full bg-slate-900" />
+                    <span>{el.label} = {el.value} {el.unit}</span>
+                    <div className="w-2.5 h-2.5 rounded-full bg-slate-900" />
+                  </div>
+                  <div className="w-full border-t-2 border-dashed border-emerald-500 -mt-1" />
+                </div>
+              )}
+
+              {/* 3. Convex Lens */}
+              {el.type === 'convex-lens' && (
+                <div className="relative flex items-center justify-center">
+                  <div className="w-12 h-36 border-y-2 border-x-4 border-blue-500 rounded-[50%] bg-blue-100/40 backdrop-blur-xs flex items-center justify-center shadow-sm">
+                    <span className="text-xs font-bold text-blue-700"></span>
+                  </div>
+                  <div className="absolute w-44 border-t border-dashed border-blue-400 pointer-events-none" />
+                  <span className="absolute -left-10 text-[11px] font-bold text-blue-600">F₁ •</span>
+                  <span className="absolute -right-10 text-[11px] font-bold text-blue-600">• F₂</span>
+                </div>
+              )}
+
+              {/* 4. Mirror */}
+              {el.type === 'mirror' && (
+                <div className="w-3 h-36 bg-sky-400 border border-sky-600 rounded-xs relative">
+                  <div className="absolute inset-y-0 right-0 w-1 bg-slate-400 opacity-60" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 0, transparent 4px)' }} />
+                </div>
+              )}
+
+              {/* 5. Battery DC Cell */}
+              {el.type === 'battery' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-bold text-red-500">+</span>
+                    <div className="w-1 h-8 bg-red-500 rounded-full" />
+                    <div className="w-2.5 h-12 bg-slate-800 rounded-sm" />
+                    <div className="w-1 h-8 bg-blue-500 rounded-full" />
+                    <span className="text-xs font-bold text-blue-500">-</span>
+                  </div>
+                  <span className="mt-1 text-xs font-bold text-red-600">
+                    {el.label} = {el.value} {el.unit}
+                  </span>
+                </div>
+              )}
+
+              {/* 6. Resistor */}
+              {el.type === 'resistor' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <div className="w-4 h-0.5 bg-slate-700" />
+                    <div className="w-20 h-7 rounded-md bg-amber-100 border-2 border-amber-600 flex items-center justify-center font-bold text-xs text-amber-900 shadow-sm">
+                      {el.label}
+                    </div>
+                    <div className="w-4 h-0.5 bg-slate-700" />
+                  </div>
+                  <span className="mt-1 text-xs font-bold text-slate-700">
+                    {el.unit} {el.value}
+                  </span>
+                </div>
+              )}
+
+              {/* 7. Switch */}
+              {el.type === 'switch' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-0.5 bg-slate-800" />
+                    <div className="w-2 h-2 rounded-full bg-slate-900" />
+                    <div className="w-12 h-0.5 bg-slate-800 -rotate-25 transform origin-left" />
+                    <div className="w-2 h-2 rounded-full bg-slate-900" />
+                    <div className="w-4 h-0.5 bg-slate-800" />
+                  </div>
+                  <span className="mt-1 text-xs font-bold text-slate-700">
+                    {el.label}
+                  </span>
+                </div>
+              )}
+
+              {/* 8. Lamp / Lightbulb */}
+              {el.type === 'lamp' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <div className="w-3 h-0.5 bg-slate-800" />
+                    <div className="w-12 h-12 rounded-full bg-yellow-200 border-2 border-yellow-500 flex items-center justify-center text-yellow-800 font-bold text-base shadow-md">
+                      ✕
+                    </div>
+                    <div className="w-3 h-0.5 bg-slate-800" />
+                  </div>
+                  <span className="mt-1 text-xs font-bold text-slate-700">
+                    {el.label} = {el.value} {el.unit}
+                  </span>
+                </div>
+              )}
+
+              {/* 9. Ammeter */}
+              {el.type === 'ammeter' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <div className="w-3 h-0.5 bg-slate-800" />
+                    <div className="w-11 h-11 rounded-full bg-sky-100 border-2 border-sky-600 flex items-center justify-center text-sky-800 font-bold text-base shadow-sm">
+                      A
+                    </div>
+                    <div className="w-3 h-0.5 bg-slate-800" />
+                  </div>
+                  <span className="mt-1 text-xs font-bold text-slate-700">
+                    {el.label} = {el.value} {el.unit}
+                  </span>
+                </div>
+              )}
+
+              {/* 10. Voltmeter */}
+              {el.type === 'voltmeter' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <div className="w-3 h-0.5 bg-slate-800" />
+                    <div className="w-11 h-11 rounded-full bg-purple-100 border-2 border-purple-600 flex items-center justify-center text-purple-800 font-bold text-base shadow-sm">
+                      V
+                    </div>
+                    <div className="w-3 h-0.5 bg-slate-800" />
+                  </div>
+                  <span className="mt-1 text-xs font-bold text-slate-700">
+                    {el.label} = {el.value} {el.unit}
+                  </span>
+                </div>
+              )}
+
+              {/* 11. Force Vector Arrow */}
+              {el.type === 'force-vector' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                    <div className="w-28 h-1 bg-red-500 relative flex items-center justify-end">
+                      <div className="w-0 h-0 border-y-6 border-y-transparent border-l-10 border-l-red-600 -mr-1" />
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 text-xs font-bold text-purple-700">
+                    <span>a = {el.extraProps?.acceleration || 1.96} m/s²</span>
+                    <span className="text-red-600">{el.label} = {el.value} {el.unit}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* 12. Weight Vector Arrow */}
+              {el.type === 'weight-vector' && (
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-3 rounded-full bg-orange-500" />
+                  <div className="w-1 h-24 bg-orange-500 relative flex flex-col justify-end items-center">
+                    <div className="w-0 h-0 border-x-6 border-x-transparent border-t-10 border-t-orange-600 -mb-1" />
+                  </div>
+                  <span className="mt-1 text-xs font-bold text-orange-600">
+                    {el.label} = {el.value} {el.unit}
+                  </span>
+                </div>
+              )}
+
+              {/* 13. Dimension Line */}
+              {el.type === 'dimension-line' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center w-36">
+                    <div className="w-0.5 h-4 bg-slate-600" />
+                    <div className="flex-1 h-0.5 bg-slate-600" />
+                    <span className="px-2 text-xs font-bold text-slate-700">
+                      {el.label} = {el.value} {el.unit}
+                    </span>
+                    <div className="flex-1 h-0.5 bg-slate-600" />
+                    <div className="w-0.5 h-4 bg-slate-600" />
+                  </div>
+                </div>
+              )}
             </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">
-                {isAr ? 'مختبر الفيزياء والرموز التعليمية' : 'Whiteboard Physics & Education Lab'}
-              </h4>
-              <p className="text-[11px] text-slate-400">
-                {isAr ? 'إدراج متجهات القوى، والعدسات البصرية، وكرات ميكانيكية ذات خصائص فيزيائية واقعية' : 'Create force arrows, optical lens arrays, and mechanical balls with real kinematics'}
-              </p>
-            </div>
-          </div>
+          );
+        })}
 
-          {/* Quick Creator buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => handleAddElement('physics.force-vector')}
-              className="px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-300 text-xs font-semibold flex items-center space-x-1 rtl:space-x-reverse transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{isAr ? 'متجه قوة (Force)' : 'Force Vector'}</span>
-            </button>
-
-            <button
-              onClick={() => handleAddElement('physics.convex-lens')}
-              className="px-3 py-1.5 rounded-lg bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/30 text-indigo-300 text-xs font-semibold flex items-center space-x-1 rtl:space-x-reverse transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{isAr ? 'عدسة محدبة (Lens)' : 'Convex Lens'}</span>
-            </button>
-
-            <button
-              onClick={() => handleAddElement('physics.ball')}
-              className="px-3 py-1.5 rounded-lg bg-rose-600/15 hover:bg-rose-600/25 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center space-x-1 rtl:space-x-reverse transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{isAr ? 'كرة ميكانيكية (Ball)' : 'Physics Ball'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* The Whiteboard Canvas Board Screen */}
-        <div 
-          ref={containerRef}
-          id="whiteboard-canvas"
-          className="relative w-full h-[480px] bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl"
-          style={{
-            backgroundImage: 'radial-gradient(#1e293b 1.5px, transparent 1.5px)',
-            backgroundSize: '24px 24px'
-          }}
-          onClick={() => setSelectedId(null)}
-        >
-          {/* Overlays Container as required by user (#overlays) */}
-          <div id="overlays" className="absolute inset-0 pointer-events-none">
-            {elements.map((el) => (
-              <div
-                key={el.id}
-                data-edu-type={el.type}
-                data-edu-props={el.props}
-                data-edu-id={el.id}
-                schemaVersion="1.0.0"
-                onMouseDown={(e) => handleElementMouseDown(e, el)}
-                onClick={(e) => { e.stopPropagation(); setSelectedId(el.id); }}
-                className={`absolute pointer-events-auto cursor-grab active:cursor-grabbing select-none rounded-xl transition-shadow ${
-                  selectedId === el.id 
-                    ? 'ring-2 ring-indigo-500 bg-slate-900/20 shadow-lg shadow-indigo-500/10' 
-                    : 'hover:ring-1 hover:ring-slate-700 hover:bg-slate-900/5'
-                }`}
-                style={{
-                  left: el.style.left,
-                  top: el.style.top,
-                  width: el.style.width,
-                  height: el.style.height,
-                  transform: el.style.transform,
-                }}
-                dangerouslySetInnerHTML={{ __html: getRenderedElementMarkup(el) }}
-              />
-            ))}
-          </div>
-
-          {/* Empty state overlay inside board */}
-          {(!elements || elements.length === 0) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center pointer-events-none">
-              <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
-                <Beaker className="w-8 h-8" />
+        {/* 2. Floating Property Popover Card for Selected Element */}
+        {selectedElement && (
+          <div 
+            className="absolute z-40 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-4 shadow-2xl w-72 animate-fade-in"
+            style={{
+              left: `${Math.min(window.innerWidth - 320, selectedElement.x + 160)}px`,
+              top: `${Math.max(20, selectedElement.y - 10)}px`,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                <h4 className="text-xs font-bold text-slate-800">
+                  {selectedElement.type === 'mass-block' ? 'كتلة فيزيائية' : selectedElement.label}
+                </h4>
               </div>
-              <p className="text-sm font-bold text-slate-300">
-                {isAr ? 'لوحة المختبر فارغة' : 'Physics whiteboard empty'}
-              </p>
-              <p className="text-xs text-slate-500 max-w-sm mt-1">
-                {isAr ? 'انقر فوق الأزرار الموجودة أعلاه لإدراج كائنات تعليمية وتجربتها في الوقت الفعلي' : 'Select force vector, optical lens, or a ball to place interactive elements on the board'}
-              </p>
-            </div>
-          )}
-
-          {/* Bottom Indicators & Toolbar */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-            <div className="flex gap-2 pointer-events-auto">
-              <button
-                onClick={(e) => { e.stopPropagation(); setIsSimulating(!isSimulating); }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all shadow-md ${
-                  isSimulating 
-                    ? 'bg-rose-600 hover:bg-rose-500 text-white' 
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                }`}
+              <button 
+                onClick={() => setSelectedId(null)}
+                className="text-slate-400 hover:text-slate-600 text-xs p-1"
               >
-                {isSimulating ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                <span>{isSimulating ? (isAr ? 'إيقاف الحركة' : 'Pause Physics') : (isAr ? 'تشغيل الحركة' : 'Simulate Physics')}</span>
-              </button>
-
-              <button
-                onClick={(e) => { e.stopPropagation(); handleUndo(); }}
-                disabled={!undoStack || undoStack.length === 0}
-                className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 disabled:opacity-40 transition-all shadow-md"
-                title={isAr ? 'تراجع' : 'Undo'}
-              >
-                <Undo2 className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={(e) => { e.stopPropagation(); handleRedo(); }}
-                disabled={!redoStack || redoStack.length === 0}
-                className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 disabled:opacity-40 transition-all shadow-md"
-                title={isAr ? 'إعادة' : 'Redo'}
-              >
-                <Redo2 className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex gap-2 pointer-events-auto">
-              <button
-                onClick={(e) => { e.stopPropagation(); handleExportCanvas(); }}
-                className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-md"
+            {/* Input Row */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs flex items-center gap-1">
+                <ChevronDown className="w-3.5 h-3.5 text-blue-500" />
+                <span>{selectedElement.unit}</span>
+              </div>
+              <input 
+                type="number"
+                value={selectedElement.value}
+                onChange={(e) => updateSelectedProp('value', parseFloat(e.target.value) || 0)}
+                className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-xs font-bold text-blue-600 font-serif">m</span>
+            </div>
+
+            {/* Quick Values */}
+            <div className="flex items-center justify-between gap-1 mb-3">
+              <span className="text-[11px] font-bold text-slate-400">قيم سريعة:</span>
+              <div className="flex gap-1">
+                {[1, 5, 10, 50].map(val => (
+                  <button
+                    key={val}
+                    onClick={() => updateSelectedProp('value', val)}
+                    className={`px-2 py-0.5 rounded text-xs font-bold transition-all ${
+                      selectedElement.value === val 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                    }`}
+                  >
+                    {val} kg
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Advanced Options Accordion */}
+            <div className="border-t border-slate-100 pt-2">
+              <button 
+                onClick={() => setShowAdvancedModalOptions(!showAdvancedModalOptions)}
+                className="w-full text-right text-xs font-bold text-slate-400 hover:text-slate-600 flex items-center justify-between"
               >
-                <FileDown className="w-4 h-4 text-blue-400" />
-                <span>{isAr ? 'تصدير كـ SVG' : 'Export SVG'}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAdvancedModalOptions ? 'rotate-180' : ''}`} />
+                <span>خيارات متقدمة</span>
               </button>
+
+              {showAdvancedModalOptions && (
+                <div className="mt-2 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-600">اسم المتغير:</span>
+                    <input 
+                      type="text" 
+                      value={selectedElement.label} 
+                      onChange={(e) => updateSelectedProp('label', e.target.value)}
+                      className="w-24 px-2 py-1 rounded border border-slate-200 text-left font-mono"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-600">زاوية الدوران:</span>
+                    <input 
+                      type="number" 
+                      value={selectedElement.rotation} 
+                      onChange={(e) => updateSelectedProp('rotation', parseInt(e.target.value) || 0)}
+                      className="w-20 px-2 py-1 rounded border border-slate-200 text-center"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* RIGHT SIDEBAR: Live Properties Editor & Testing Console */}
-      <div className="w-full xl:w-80 shrink-0 flex flex-col space-y-6">
-        
-        {/* Section 1: Property Editor Panel */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-            <Sliders className="w-4 h-4 text-blue-400" />
-            <h5 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              {isAr ? 'محرر الخصائص الفيزيائية' : 'Property Editor'}
-            </h5>
-          </div>
+      {/* 3. Floating Vertical Toolbar on the Right (Exactly like Screenshot) */}
+      <div className="absolute top-4 right-4 z-30 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-2.5 shadow-xl flex flex-col items-center gap-2.5 w-20 text-slate-700 text-[11px] font-bold">
+        {/* Tool Items */}
+        <button 
+          onClick={() => addElement('force-vector', 'سهم')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <MoveUpRight className="w-4 h-4 text-slate-600" />
+          <span>سهم</span>
+        </button>
 
-          {selectedElem && selectedProps ? (
-            <div className="space-y-4 animate-fade-in text-xs">
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
-                <div className="text-[10px] text-slate-400 uppercase tracking-widest">{selectedElem.type}</div>
-                <div className="font-bold text-white truncate">{selectedElem.id}</div>
-              </div>
+        <button 
+          onClick={() => addElement('lamp', 'دائرة')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <Circle className="w-4 h-4 text-slate-600" />
+          <span>دائرة</span>
+        </button>
 
-              {/* 1. Force Vector Properties */}
-              {selectedElem.type === 'physics.force-vector' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-slate-400 block mb-1">Force Magnitude (N)</label>
-                    <input 
-                      type="range" min="10" max="250" value={selectedProps.magnitude}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { magnitude: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.magnitude} N</div>
-                  </div>
+        <button 
+          onClick={() => addElement('shape-triangle', 'مثلث')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <Triangle className="w-4 h-4 text-slate-600" />
+          <span>مثلث</span>
+        </button>
 
-                  <div>
-                    <label className="text-slate-400 block mb-1">Angle (Degrees)</label>
-                    <input 
-                      type="range" min="-180" max="180" value={selectedProps.angle}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { angle: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.angle}°</div>
-                  </div>
+        <button 
+          onClick={() => addElement('mass-block', 'مستطيل')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <Square className="w-4 h-4 text-slate-600" />
+          <span>مستطيل</span>
+        </button>
 
-                  <div>
-                    <label className="text-slate-400 block mb-1">Label Text</label>
-                    <input 
-                      type="text" value={selectedProps.label}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { label: e.target.value })}
-                      className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 focus:outline-none focus:border-blue-500 text-white"
-                    />
-                  </div>
+        <button 
+          onClick={() => addElement('text-label', 'نص')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <Type className="w-4 h-4 text-slate-600" />
+          <span>نص</span>
+        </button>
 
-                  <div>
-                    <label className="text-slate-400 block mb-1">Vector Color</label>
-                    <select 
-                      value={selectedProps.color}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { color: e.target.value })}
-                      className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white"
-                    >
-                      <option value="#3b82f6">Ocean Blue</option>
-                      <option value="#eab308">Warning Yellow</option>
-                      <option value="#22c55e">Signal Green</option>
-                      <option value="#ec4899">Premium Magenta</option>
-                    </select>
-                  </div>
-                </div>
-              )}
+        <button 
+          onClick={() => addElement('dimension-line', 'رياضيات')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <Calculator className="w-4 h-4 text-slate-600" />
+          <span>رياضيات</span>
+        </button>
 
-              {/* 2. Convex Lens Properties */}
-              {selectedElem.type === 'physics.convex-lens' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-slate-400 block mb-1">Focal Length (f)</label>
-                    <input 
-                      type="range" min="40" max="150" value={selectedProps.focalLength}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { focalLength: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.focalLength} px</div>
-                  </div>
+        <button 
+          onClick={() => addElement('note', 'ملاحظة')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <StickyNote className="w-4 h-4 text-slate-600" />
+          <span>ملاحظة</span>
+        </button>
 
-                  <div>
-                    <label className="text-slate-400 block mb-1">Object Distance (u)</label>
-                    <input 
-                      type="range" min="50" max="300" value={selectedProps.objectDistance}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { objectDistance: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.objectDistance} px</div>
-                  </div>
+        <button 
+          onClick={() => addElement('convex-lens', 'صورة')}
+          className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors"
+        >
+          <ImageIcon className="w-4 h-4 text-slate-600" />
+          <span>صورة</span>
+        </button>
 
-                  <div>
-                    <label className="text-slate-400 block mb-1">Object Height (ho)</label>
-                    <input 
-                      type="range" min="10" max="90" value={selectedProps.objectHeight}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { objectHeight: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.objectHeight} px</div>
-                  </div>
+        {/* Physics Dropdown */}
+        <div className="relative w-full">
+          <button 
+            onClick={(e) => { e.stopPropagation(); setOpenPhysicsMenu(!openPhysicsMenu); setOpenChemMenu(false); }}
+            className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-blue-50 text-blue-700 transition-colors"
+          >
+            <Atom className="w-4 h-4 text-blue-600" />
+            <span className="flex items-center gap-0.5">فيزياء <ChevronDown className="w-2.5 h-2.5" /></span>
+          </button>
 
-                  <div className="flex items-center justify-between">
-                    <label className="text-slate-400">Render Optical Rays</label>
-                    <input 
-                      type="checkbox" checked={selectedProps.showRays}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { showRays: e.target.checked })}
-                      className="rounded bg-slate-950 border-slate-800 text-blue-500 focus:ring-0"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* 3. Ball Properties */}
-              {selectedElem.type === 'physics.ball' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-slate-400 block mb-1">Radius (px)</label>
-                    <input 
-                      type="range" min="20" max="50" value={selectedProps.radius}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { radius: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.radius} px</div>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-400 block mb-1">Mass (kg)</label>
-                    <input 
-                      type="range" min="1" max="25" value={selectedProps.mass}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { mass: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.mass} kg</div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-slate-400 block mb-0.5">Velocity X</label>
-                      <input 
-                        type="number" step="0.5" value={selectedProps.vx}
-                        onChange={(e) => handleUpdateProps(selectedElem.id, { vx: Number(e.target.value) })}
-                        className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-white font-mono text-center"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-slate-400 block mb-0.5">Velocity Y</label>
-                      <input 
-                        type="number" step="0.5" value={selectedProps.vy}
-                        onChange={(e) => handleUpdateProps(selectedElem.id, { vy: Number(e.target.value) })}
-                        className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-white font-mono text-center"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-400 block mb-1">Bounciness (Restitution)</label>
-                    <input 
-                      type="range" min="0" max="1" step="0.05" value={selectedProps.restitution}
-                      onChange={(e) => handleUpdateProps(selectedElem.id, { restitution: Number(e.target.value) })}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="text-right text-blue-400 font-bold font-mono mt-0.5">{selectedProps.restitution}</div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={() => handleDeleteElement(selectedElem.id)}
-                className="w-full py-2.5 rounded-xl bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/20 text-rose-400 font-semibold flex items-center justify-center space-x-1.5 transition-all mt-4"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>{isAr ? 'حذف العنصر' : 'Remove Object'}</span>
-              </button>
-            </div>
-          ) : (
-            <div className="py-8 text-center text-slate-500 text-xs">
-              {isAr ? 'حدد أي عنصر باللوحة لتعديله' : 'Click any whiteboard object to load properties editor'}
+          {openPhysicsMenu && (
+            <div className="absolute right-full top-0 ml-2 w-44 bg-white border border-slate-200 rounded-xl shadow-2xl p-2 z-50 text-right space-y-1">
+              <button onClick={() => addElement('mass-block', 'm', 5)} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">كتلة فيزيائية (Mass)</button>
+              <button onClick={() => addElement('velocity-car', 'v', 15)} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">سيارة وسرعة (Vehicle)</button>
+              <button onClick={() => addElement('convex-lens', 'عدسة')} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">عدسة مقعرة/محدبة</button>
+              <button onClick={() => addElement('mirror', 'مرآة')} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">مرآة عاكسة</button>
+              <button onClick={() => addElement('battery', 'E', 12)} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">بطارية DC Cell</button>
+              <button onClick={() => addElement('resistor', 'R', 10)} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">مقاومة R</button>
+              <button onClick={() => addElement('ammeter', 'I', 2)} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">أمبير متر (Ammeter)</button>
+              <button onClick={() => addElement('voltmeter', 'U', 12)} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">فولت متر (Voltmeter)</button>
+              <button onClick={() => addElement('switch', 'K')} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">قاطع / مفتاح</button>
+              <button onClick={() => addElement('lamp', 'L', 60)} className="w-full text-right px-3 py-1.5 text-xs hover:bg-blue-50 text-slate-700 rounded-lg">مصباح كهربائي</button>
             </div>
           )}
         </div>
 
-        {/* Section 2: Automated Integration Testing Drawer */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Beaker className="w-4 h-4 text-emerald-400" />
-              <h5 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                {isAr ? 'منصة الاختبار الذاتي' : 'Self-Test Console'}
-              </h5>
-            </div>
+        {/* Chemistry Dropdown */}
+        <div className="relative w-full">
+          <button 
+            onClick={(e) => { e.stopPropagation(); setOpenChemMenu(!openChemMenu); setOpenPhysicsMenu(false); }}
+            className="w-full py-1.5 flex flex-col items-center gap-1 rounded-xl hover:bg-emerald-50 text-emerald-700 transition-colors"
+          >
+            <FlaskConical className="w-4 h-4 text-emerald-600" />
+            <span className="flex items-center gap-0.5">كيمياء <ChevronDown className="w-2.5 h-2.5" /></span>
+          </button>
 
-            <button
-              onClick={handleRunTests}
-              className="p-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 transition-all"
-              title="Run Suite"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between p-2.5 bg-slate-950 rounded-xl border border-slate-800">
-              <span className="text-slate-400">Suite Health:</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                testStatus === 'passed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
-                testStatus === 'failed' ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' :
-                testStatus === 'running' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                'bg-slate-800 text-slate-400 border-slate-700'
-              }`}>
-                {testStatus === 'passed' ? 'PASSED ✅' :
-                 testStatus === 'failed' ? 'FAILED ❌' :
-                 testStatus === 'running' ? 'RUNNING...' : 'IDLE'}
-              </span>
+          {openChemMenu && (
+            <div className="absolute right-full top-0 ml-2 w-40 bg-white border border-slate-200 rounded-xl shadow-2xl p-2 z-50 text-right space-y-1">
+              <button onClick={() => addElement('flask', 'دورق معمل')} className="w-full text-right px-3 py-1.5 text-xs hover:bg-emerald-50 text-slate-700 rounded-lg">كأس / دورق</button>
+              <button onClick={() => addElement('shape-circle', 'جزيء H2O')} className="w-full text-right px-3 py-1.5 text-xs hover:bg-emerald-50 text-slate-700 rounded-lg">جزيء H₂O</button>
             </div>
-
-            <div className="h-28 overflow-y-auto bg-slate-950 p-2.5 rounded-xl border border-slate-800 font-mono text-[9px] text-slate-400 space-y-1 scrollbar-thin">
-              {testLogs && testLogs.length > 0 ? (
-                testLogs.map((log, idx) => (
-                  <div key={idx} className={log.includes('FAILED') ? 'text-rose-400' : log.includes('PASSED') ? 'text-emerald-400' : ''}>
-                    {log}
-                  </div>
-                ))
-              ) : (
-                <div className="text-slate-600 text-center py-4">Click run to start integration test suite.</div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
 
+        <div className="w-full border-t border-slate-200 my-1" />
+
+        {/* Color Palette */}
+        <div className="flex flex-col gap-1.5 items-center">
+          {['#000000', '#2563eb', '#ef4444', '#22c55e', '#a855f7'].map(color => (
+            <button
+              key={color}
+              onClick={() => setSelectedColor(color)}
+              className={`w-5 h-5 rounded-full transition-transform ${
+                selectedColor === color ? 'scale-125 ring-2 ring-slate-400' : 'hover:scale-110'
+              }`}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+          <span className="text-[9px] text-slate-400 mt-0.5">مخصص</span>
+        </div>
+
+        {/* Stroke thickness slider */}
+        <div className="w-full flex flex-col items-center gap-0.5 mt-1">
+          <span className="text-[10px] text-slate-500">السمك {strokeWidth}</span>
+          <input 
+            type="range" 
+            min="1" 
+            max="10" 
+            value={strokeWidth} 
+            onChange={(e) => setStrokeWidth(parseInt(e.target.value))}
+            className="w-12 h-1 accent-blue-600 cursor-pointer"
+          />
+        </div>
+
+        <div className="w-full border-t border-slate-200 my-1" />
+
+        {/* Toggles: Grid & Axes */}
+        <button 
+          onClick={() => setShowGrid(!showGrid)}
+          className={`w-full py-1.5 flex flex-col items-center gap-1 rounded-xl transition-colors ${
+            showGrid ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100 text-slate-500'
+          }`}
+        >
+          <GridIcon className="w-4 h-4" />
+          <span>شبكة</span>
+        </button>
+
+        <button 
+          onClick={() => setShowAxes(!showAxes)}
+          className={`w-full py-1.5 flex flex-col items-center gap-1 rounded-xl transition-colors ${
+            showAxes ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100 text-slate-500'
+          }`}
+        >
+          <Compass className="w-4 h-4" />
+          <span>محاور</span>
+        </button>
+      </div>
+
+      {/* 4. Floating Pagination / Action Bar at Bottom Center */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-white/95 backdrop-blur-md border border-slate-200 px-4 py-2 rounded-full shadow-xl flex items-center gap-4 text-slate-700">
+        <button 
+          onClick={deleteSelected}
+          disabled={!selectedId}
+          className="text-red-500 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 disabled:opacity-30 transition-all"
+          title="حذف العنصر المحدد"
+        >
+          <Trash2 className="w-5 h-5" />
+        </button>
+
+        <div className="w-px h-5 bg-slate-200" />
+
+        <button 
+          onClick={() => addElement('mass-block', 'كتلة', 5)}
+          className="text-blue-600 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-all"
+          title="إضافة عنصر جديد"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
+
+        <div className="w-px h-5 bg-slate-200" />
+
+        {/* Page Switcher */}
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-600 font-mono">
+          <button 
+            onClick={() => setActivePage(p => Math.max(1, p - 1))}
+            className="p-1 hover:bg-slate-100 rounded-full"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span>{activePage} / {totalPages}</span>
+          <button 
+            onClick={() => {
+              setTotalPages(p => p + 1);
+              setActivePage(p => p + 1);
+            }}
+            className="p-1 hover:bg-slate-100 rounded-full"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
 };
+
+export default EducationalBoard;

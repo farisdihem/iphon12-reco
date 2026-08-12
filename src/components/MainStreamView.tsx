@@ -46,7 +46,7 @@ export const MainStreamView: React.FC<MainStreamViewProps> = ({
   const isAr = lang === 'ar';
   
   // Stream Modes
-  const [activeStreamType, setActiveStreamType] = useState<'screen' | 'audio' | 'media' | 'whiteboard'>('screen');
+  const [activeStreamType, setActiveStreamType] = useState<'screen' | 'audio' | 'media' | 'whiteboard'>('whiteboard');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
